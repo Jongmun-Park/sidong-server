@@ -18,6 +18,7 @@ class ArtType(DjangoObjectType):
 class Query(object):
     category = graphene.Field(CategoryType, id=graphene.Int(), name=graphene.String())
     all_categories = graphene.List(CategoryType)
+
     art = graphene.Field(ArtType, id=graphene.Int(), name=graphene.String())
     all_arts = graphene.List(ArtType)
 
