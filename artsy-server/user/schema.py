@@ -26,35 +26,12 @@ class CreateUser(Mutation):
         else:
             user = User.objects.create_user(username=email, password=password)
             status = True
-            return CreateUser(user=user, status=status)
-
-
-class LoginUser(Mutation):
-    class Arguments:
-        email = String(required=True)
-        password = String(required=True)
-
-    user = Field(UserType)
-    status = Boolean()
-    msg = String()
-
-    def mutate(self, info, email, password):
-        from django.contrib.auth import authenticate, login
-
-        user = authenticate(username=email, password=password)
-        if user is not None:
-            login(request, user)
-            status = True
-            return LoginUser(user=user, status=status)
-        else:
-            status = False
-            msg = "로그인에 실패했습니다."
-            return LoginUser(status=status, msg=msg)
+            msg = "회원 가입이 완료됐습니다. 감사합니다."
+            return CreateUser(user=user, status=status, msg=msg)
 
 
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
-    login_user = LoginUser.Field()
 
 
 class Query(object):
