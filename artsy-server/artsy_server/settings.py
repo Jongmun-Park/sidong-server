@@ -119,6 +119,14 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-GRAPHENE = {"SCHEMA": "artsy_server.schema.schema"}
+GRAPHENE = {
+    "SCHEMA": "artsy_server.schema.schema",
+    "MIDDLEWARE": ["graphql_jwt.middleware.JSONWebTokenMiddleware",],
+}
+
+AUTHENTICATION_BACKENDS = [
+    "graphql_jwt.backends.JSONWebTokenBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]

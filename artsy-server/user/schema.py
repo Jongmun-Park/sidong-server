@@ -9,7 +9,7 @@ class UserType(DjangoObjectType):
         model = User
 
 
-class UserCreateMutation(Mutation):
+class CreateUser(Mutation):
     class Arguments:
         email = String(required=True)
         password = String(required=True)
@@ -22,14 +22,14 @@ class UserCreateMutation(Mutation):
         if User.objects.filter(username=email).exists():
             status = False
             msg = "이미 등록된 이메일입니다."
-            return UserCreateMutation(status=status, msg=msg)
+            return CreateUser(status=status, msg=msg)
         else:
             user = User.objects.create_user(username=email, password=password)
             status = True
-            return UserCreateMutation(user=user, status=status)
+            return CreateUser(user=user, status=status)
 
 
-class UserLoginMutation(Mutation):
+class LoginUser(Mutation):
     class Arguments:
         email = String(required=True)
         password = String(required=True)
@@ -45,26 +45,24 @@ class UserLoginMutation(Mutation):
         if user is not None:
             login(request, user)
             status = True
-            return UserLoginMutation(user=user, status=status)
+            return LoginUser(user=user, status=status)
         else:
             status = False
             msg = "로그인에 실패했습니다."
-            return UserLoginMutation(status=status, msg=msg)
+            return LoginUser(status=status, msg=msg)
 
 
 class Mutation(ObjectType):
-    create_user = UserCreateMutation.Field()
-    login_user = UserLoginMutation.Field()
+    create_user = CreateUser.Field()
+    login_user = LoginUser.Field()
 
 
 class Query(object):
     user = Field(UserType, id=Int(), email=String())
     all_users = List(UserType)
+    current_user = Field(UserType)
 
-    def resolve_user(self, info, **kwargs):
-        id = kwargs.get("id")
-        email = kwargs.get("email")
-
+    def resolve_user(self, info, id, email):
         if id is not None:
             return User.objects.get(id=id)
 
@@ -75,3 +73,10 @@ class Query(object):
 
     def resolve_all_users(self, info, **kwargs):
         return User.objects.all()
+
+    def resolve_current_user(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            raise Exception("Not logged in")
+
+        return user
