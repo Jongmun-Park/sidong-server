@@ -54,6 +54,6 @@ class Query(object):
     def resolve_current_user(self, info):
         user = info.context.user
         if user.is_anonymous:
-            raise Exception("Not logged in")
+            return None
 
         return user
