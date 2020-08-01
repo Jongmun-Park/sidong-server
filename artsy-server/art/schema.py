@@ -1,8 +1,6 @@
-import graphene
-
-from graphene_django.types import DjangoObjectType
-
 from art.models import Category, Art
+from graphene import Field, Int, String, List, Mutation
+from graphene_django.types import DjangoObjectType
 
 
 class CategoryType(DjangoObjectType):
@@ -15,12 +13,18 @@ class ArtType(DjangoObjectType):
         model = Art
 
 
-class Query(object):
-    category = graphene.Field(CategoryType, id=graphene.Int(), name=graphene.String())
-    all_categories = graphene.List(CategoryType)
+class CreateArt(Mutation):
+    class Arguments:
+        name = String(required=True)
+        # file =
 
-    art = graphene.Field(ArtType, id=graphene.Int(), name=graphene.String())
-    all_arts = graphene.List(ArtType)
+
+class Query(object):
+    category = Field(CategoryType, id=Int(), name=String())
+    all_categories = List(CategoryType)
+
+    art = Field(ArtType, id=Int(), name=String())
+    all_arts = List(ArtType)
 
     def resolve_category(self, info, **kwargs):
         id = kwargs.get("id")

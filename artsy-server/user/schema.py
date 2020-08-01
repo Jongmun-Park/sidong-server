@@ -1,6 +1,6 @@
-from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int, DateTime
-
 from django.contrib.auth.models import User
+
+from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int
 from graphene_django.types import DjangoObjectType
 
 
