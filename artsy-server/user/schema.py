@@ -15,19 +15,14 @@ class CreateUser(Mutation):
         password = String(required=True)
 
     user = Field(UserType)
-    status = Boolean()
-    msg = String()
+    success = Boolean()
 
     def mutate(self, info, email, password):
         if User.objects.filter(username=email).exists():
-            status = False
-            msg = "이미 등록된 이메일입니다."
-            return CreateUser(status=status, msg=msg)
+            return CreateUser(success=False)
         else:
             user = User.objects.create_user(username=email, password=password)
-            status = True
-            msg = "회원 가입이 완료됐습니다. 감사합니다."
-            return CreateUser(user=user, status=status, msg=msg)
+            return CreateUser(user=user, success=True)
 
 
 class Mutation(ObjectType):

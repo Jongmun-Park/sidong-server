@@ -1,6 +1,7 @@
 from art.models import Category, Art
-from graphene import Field, Int, String, List, Mutation
+from graphene import Field, Int, String, List, Mutation, Boolean, ObjectType
 from graphene_django.types import DjangoObjectType
+from graphene_file_upload.scalars import Upload
 
 
 class CategoryType(DjangoObjectType):
@@ -16,7 +17,17 @@ class ArtType(DjangoObjectType):
 class CreateArt(Mutation):
     class Arguments:
         name = String(required=True)
-        # file =
+        file = Upload(required=True)
+
+    success = Boolean()
+
+    def mutate(self, info, file, **kwargs):
+
+        return CreateArt(success=True)
+
+
+class Mutation(ObjectType):
+    create_art = CreateArt.Field()
 
 
 class Query(object):
