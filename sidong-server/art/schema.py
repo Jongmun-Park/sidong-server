@@ -17,12 +17,13 @@ class ArtType(DjangoObjectType):
 class CreateArt(Mutation):
     class Arguments:
         name = String(required=True)
-        file = Upload(required=True)
+        thumbnail = Upload(required=True)
 
     success = Boolean()
 
-    def mutate(self, info, file, **kwargs):
-
+    def mutate(self, info, name, thumbnail):
+        print('thumbnail:', thumbnail)
+        print('name:', name)
         return CreateArt(success=True)
 
 
