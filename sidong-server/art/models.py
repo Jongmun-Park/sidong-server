@@ -13,6 +13,7 @@ class Art(models.Model):
     category = models.ForeignKey(
         Category, related_name="arts", null=True, on_delete=models.SET_NULL
     )
+    thumbnail = models.ImageField(upload_to='art/thumbnails')
 
     def __str__(self):
         return self.name

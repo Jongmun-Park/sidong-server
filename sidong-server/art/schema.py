@@ -24,6 +24,7 @@ class CreateArt(Mutation):
     def mutate(self, info, name, thumbnail):
         print('thumbnail:', thumbnail)
         print('name:', name)
+        Art.objects.create(name=name, thumbnail=thumbnail[0])
         return CreateArt(success=True)
 
 
