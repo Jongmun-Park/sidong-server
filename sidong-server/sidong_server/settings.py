@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "graphene_django",
-    "art",
+    "file",
+    "post",
+    "user",
 ]
 
 MIDDLEWARE = [
