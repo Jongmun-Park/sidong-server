@@ -1,5 +1,7 @@
 from django.db import models
+from django.conf import settings
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 
@@ -9,7 +11,7 @@ class File(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=256, null=True)
-    bucket = models.CharField(max_length=32, choices=((BUCKET_POST, "게시글"),))
+    bucket = models.CharField(max_length=32, choices=[(BUCKET_POST, "게시글")])
     path = models.CharField(max_length=256)
     mime_type = models.CharField(max_length=128)
     # user_info = models.ForeignKey(
@@ -26,12 +28,17 @@ class File(models.Model):
         :return: True if file was uploaded, else False
         """
 
-        # If S3 object_name was not specified, use file_name
         if object_name is None:
             object_name = file_name
 
-        # Upload the file
-        s3_client = boto3.client("s3")
+        session = boto3.session.Session(
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name="ap-northeast-2",
+        )
+
+        s3_client = session.client("s3")
+
         try:
             response = s3_client.upload_file(file_name, bucket, object_name)
         except ClientError as e:
