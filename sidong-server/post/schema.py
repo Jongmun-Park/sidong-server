@@ -1,7 +1,8 @@
-from post.models import Post
 from graphene import Field, Int, String, List, Mutation, Boolean, ObjectType
 from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
+from post.models import Post
+from file.models import upload_file
 
 
 class PostType(DjangoObjectType):
@@ -17,9 +18,10 @@ class CreatePost(Mutation):
     success = Boolean()
 
     def mutate(self, info, title, thumbnail):
-        print('thumbnail:', thumbnail)
-        print('title:', title)
+        print("thumbnail:", thumbnail)
+        print("title:", title)
         # Post.objects.create(title=title, thumbnail=thumbnail[0])
+        upload_file(thumbnail[0])
         return CreatePost(success=True)
 
 
