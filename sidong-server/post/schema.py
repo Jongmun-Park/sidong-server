@@ -18,10 +18,10 @@ class CreatePost(Mutation):
     success = Boolean()
 
     def mutate(self, info, title, thumbnail):
-        print("thumbnail:", thumbnail)
         print("title:", title)
+        print("thumbnail:", thumbnail[0].__dict__)
         # Post.objects.create(title=title, thumbnail=thumbnail[0])
-        upload_file(thumbnail[0])
+        # upload_file(thumbnail[0])
         return CreatePost(success=True)
 
 
