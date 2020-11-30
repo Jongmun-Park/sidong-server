@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "corsheaders",
     "graphene_django",
+    "phonenumber_field",
     "file",
     "post",
     "user",
@@ -134,5 +135,5 @@ AUTHENTICATION_BACKENDS = [
 
 CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
 
-AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY"]
-AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+AWS_ACCESS_KEY = os.environ["SIDONG_AWS_ACCESS_KEY"]
+AWS_SECRET_ACCESS_KEY = os.environ["SIDONG_AWS_SECRET_ACCESS_KEY"]

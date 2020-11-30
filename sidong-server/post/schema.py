@@ -2,7 +2,8 @@ from graphene import Field, Int, String, List, Mutation, Boolean, ObjectType
 from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from post.models import Post
-from file.models import upload_file
+
+# from file.models import upload_file
 
 
 class PostType(DjangoObjectType):
