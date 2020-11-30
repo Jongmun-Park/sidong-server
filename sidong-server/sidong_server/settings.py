@@ -133,6 +133,7 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+PHONENUMBER_DEFAULT_REGION = "KR"
 CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
 
 AWS_ACCESS_KEY = os.environ["SIDONG_AWS_ACCESS_KEY"]
