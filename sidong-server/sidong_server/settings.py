@@ -80,9 +80,9 @@ WSGI_APPLICATION = "sidong_server.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "artsy",
-        "USER": "jongmun",
-        "PASSWORD": "password",
+        "NAME": "sidong",
+        "USER": "sidong",
+        "PASSWORD": "sidongpsql",
         "HOST": "127.0.0.1",
     }
 }
