@@ -37,9 +37,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
     "corsheaders",
     "graphene_django",
-    "art",
+    "phonenumber_field",
+    "file",
+    "post",
+    "user",
 ]
 
 MIDDLEWARE = [
@@ -129,4 +133,8 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+PHONENUMBER_DEFAULT_REGION = "KR"
 CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
+
+AWS_ACCESS_KEY = os.environ["SIDONG_AWS_ACCESS_KEY"]
+AWS_SECRET_ACCESS_KEY = os.environ["SIDONG_AWS_SECRET_ACCESS_KEY"]
