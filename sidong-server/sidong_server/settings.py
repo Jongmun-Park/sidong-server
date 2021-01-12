@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     "graphene_django",
     "phonenumber_field",
     "file",
-    "post",
     "user",
 ]
 
