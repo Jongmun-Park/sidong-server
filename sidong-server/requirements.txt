@@ -19,7 +19,6 @@ graphql-relay==2.0.1
 jmespath==0.10.0
 pathspec==0.7.0
 phonenumbers==8.12.15
-Pillow==7.2.0
 promise==2.3
 psycopg2==2.8.4
 PyJWT==1.7.1
