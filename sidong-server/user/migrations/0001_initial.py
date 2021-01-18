@@ -16,24 +16,21 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Category',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=64)),
-            ],
-        ),
-        migrations.CreateModel(
             name='Artist',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('artist_name', models.CharField(max_length=64)),
                 ('real_name', models.CharField(max_length=32)),
-                ('phone', phonenumber_field.modelfields.PhoneNumberField(max_length=128, null=True, region=None)),
+                ('phone', phonenumber_field.modelfields.PhoneNumberField(
+                    max_length=128, null=True, region=None)),
                 ('description', models.TextField(blank=True)),
-                ('categories', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=64), size=None)),
-                ('thumbnail', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='file.File')),
+                ('categories', django.contrib.postgres.fields.ArrayField(
+                    base_field=models.CharField(max_length=64), size=None)),
+                ('thumbnail', models.ForeignKey(
+                    null=True, on_delete=django.db.models.deletion.SET_NULL, to='file.File')),
             ],
         ),
     ]
