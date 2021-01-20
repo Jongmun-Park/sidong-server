@@ -9,23 +9,22 @@ from botocore.exceptions import ClientError
 class File(models.Model):
     BUCKET_ASSETS = "assets"
 
+    CHOICES_OF_BUCKET = [
+        (BUCKET_ASSETS, "기본 버킷"),
+    ]
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=64, null=True)
-    bucket = models.CharField(max_length=64, choices=[(BUCKET_ASSETS, "게시글")])
+    bucket = models.CharField(
+        max_length=64, choices=CHOICES_OF_BUCKET, default=BUCKET_ASSETS)
     path = models.CharField(max_length=256)
     content_type = models.CharField(max_length=128)
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
-    def create_file(file, bucket):
-        # 오늘 날짜에 생성된 데이터 중 파일명 중복 체크해야 함.
-        file_path = timezone.now().strftime("%Y%m%d") + "/" + file.name
-
-        upload_file(file, file_path, bucket)
-        pass
-
     @staticmethod
-    def upload_file(file, file_path, bucket="assets.storage.jakupsil.co.kr"):
+    def upload_file(file, file_path, bucket):
+        bucket += ".storage.jakupsil.co.kr"
         s3_client = boto3.client(
             service_name="s3",
             aws_access_key_id=settings.AWS_ACCESS_KEY,
@@ -41,7 +40,50 @@ class File(models.Model):
                 Bucket=bucket,
                 ContentType=file.content_type,
             )
-        except ClientError as e:
-            return False
+        except ClientError as error:
+            return {'status': 'fail', msg: error.msg}
 
-        return True
+        return {'status': 'success'}
+
+    def create_file(file, bucket, user):
+        if file.size > 10000000:
+            return {
+                'status': 'fail',
+                'msg': '파일 용량은 10MB까지 가능합니다. 용량을 확인해주세요.',
+            }
+
+        current_time = timezone.now()
+        file_path = current_time.strftime("%Y") + "/" + current_time.strftime(
+            "%m") + "/" + current_time.strftime("%d") + "/" + current_time.strftime("%H%M%s") + file.name
+
+        if File.objects.filter(bucket=bucket, path=file_path).exists():
+            return {
+                'status': 'fail',
+                'msg': '이미 존재하는 파일명입니다. 파일명을 변경해주세요.'
+            }
+
+        result_of_upload_to_s3 = File.upload_file(file, file_path, bucket)
+
+        if result_of_upload_to_s3['status'] == 'fail':
+            return {
+                'status': 'fail',
+                'msg': result_of_upload_to_s3['msg'],
+            }
+
+        try:
+            instance = File.objects.create(
+                name=file.name,
+                bucket=bucket,
+                path=file_path,
+                content_type=file.content_type,
+                user=user,
+            )
+            return {
+                'status': 'success',
+                'instance': instance,
+            }
+        except Exception as error:
+            return {
+                'status': 'fail',
+                'msg': error,
+            }

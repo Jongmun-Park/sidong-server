@@ -11,12 +11,12 @@ class Artist(models.Model):
     CRAFTSMAN = 2
     ETC = 3
 
-    CHOICES_OF_CATEGORY = (
+    CHOICES_OF_CATEGORY = [
         (PAINTER, '화가'),
         (SCULPTOR, '조각가'),
         (CRAFTSMAN, '공예가'),
         (ETC, '기타'),
-    )
+    ]
 
     SEOUL = 0
     PUSAN = 1
@@ -36,7 +36,7 @@ class Artist(models.Model):
     GYEONGNAM = 15
     JEJU = 16
 
-    CHOICES_OF_RESIDENCE = (
+    CHOICES_OF_RESIDENCE = [
         (SEOUL, '서울특별시'),
         (PUSAN, '부산광역시'),
         (DAEGU, '대구광역시'),
@@ -54,7 +54,7 @@ class Artist(models.Model):
         (GYEONGBUK, '경상북도'),
         (GYEONGNAM, '경상남도'),
         (JEJU, '제주특별자치도'),
-    )
+    ]
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

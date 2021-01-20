@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
-
+from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int
 from graphene_django.types import DjangoObjectType
+from user.models import Artist
+from file.models import File
 
 
 class UserType(DjangoObjectType):
@@ -14,8 +16,8 @@ class CreateUser(Mutation):
         email = String(required=True)
         password = String(required=True)
 
-    user = Field(UserType)
     success = Boolean()
+    user = Field(UserType)
 
     def mutate(self, info, email, password):
         if User.objects.filter(username=email).exists():
@@ -25,8 +27,60 @@ class CreateUser(Mutation):
             return CreateUser(user=user, success=True)
 
 
+class ArtistType(DjangoObjectType):
+    class Meta:
+        model = Artist
+
+
+class CreateArtist(Mutation):
+    class Arguments:
+        artist_name = String(required=True)
+        real_name = String(required=True)
+        phone = String(required=True)
+        description = String(required=True)
+        category = Int(required=True)
+        residence = Int(required=True)
+        thumbnail = Upload(required=True)
+        representative_work = Upload(required=True)
+
+    success = Boolean()
+    artist = Field(ArtistType)
+    msg = String()
+
+    def mutate(self, info, artist_name, real_name,
+               phone, description, category, residence, thumbnail, representative_work):
+        current_user = info.context.user
+
+        thumbnail_file = File.create_file(
+            thumbnail[0], File.BUCKET_ASSETS, current_user)
+
+        if thumbnail_file['status'] == 'fail':
+            return CreateArtist(success=False, msg=thumbnail_file['msg'])
+
+        representative_work_file = File.create_file(
+            representative_work[0], File.BUCKET_ASSETS, current_user)
+
+        if representative_work_file['status'] == 'fail':
+            return CreateArtist(success=False, msg=representative_work_file['msg'])
+
+        artist = Artist.objects.create(
+            user=current_user,
+            artist_name=artist_name,
+            real_name=real_name,
+            phone=phone,
+            description=description,
+            category=category,
+            residence=residence,
+            thumbnail=thumbnail_file['instance'],
+            representative_work=representative_work_file['instance'],
+        )
+
+        return CreateArtist(success=True, artist=artist)
+
+
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
+    create_artist = CreateArtist.Field()
 
 
 class Query(object):
