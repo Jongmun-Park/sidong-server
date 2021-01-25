@@ -11,25 +11,46 @@ class UserType(DjangoObjectType):
         model = User
 
 
+class ArtistType(DjangoObjectType):
+    class Meta:
+        model = Artist
+
+
+class Query(object):
+    user = Field(UserType, id=Int(), email=String())
+    current_user = Field(UserType)
+    artists = List(ArtistType)
+
+    def resolve_user(self, info, id=None, email=None):
+        if id is not None:
+            return User.objects.get(id=id)
+        if email is not None:
+            return User.objects.get(username=email)
+        return None
+
+    def resolve_current_user(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+        return user
+
+    def resolve_artists(self, info):
+        return Artist.objects.all()
+
+
 class CreateUser(Mutation):
     class Arguments:
         email = String(required=True)
         password = String(required=True)
 
     success = Boolean()
-    user = Field(UserType)
 
     def mutate(self, info, email, password):
         if User.objects.filter(username=email).exists():
             return CreateUser(success=False)
         else:
-            user = User.objects.create_user(username=email, password=password)
-            return CreateUser(user=user, success=True)
-
-
-class ArtistType(DjangoObjectType):
-    class Meta:
-        model = Artist
+            User.objects.create_user(username=email, password=password)
+            return CreateUser(success=True)
 
 
 class CreateArtist(Mutation):
@@ -44,7 +65,6 @@ class CreateArtist(Mutation):
         representative_work = Upload(required=True)
 
     success = Boolean()
-    artist = Field(ArtistType)
     msg = String()
 
     def mutate(self, info, artist_name, real_name,
@@ -63,7 +83,7 @@ class CreateArtist(Mutation):
         if representative_work_file['status'] == 'fail':
             return CreateArtist(success=False, msg=representative_work_file['msg'])
 
-        artist = Artist.objects.create(
+        Artist.objects.create(
             user=current_user,
             artist_name=artist_name,
             real_name=real_name,
@@ -75,34 +95,9 @@ class CreateArtist(Mutation):
             representative_work=representative_work_file['instance'],
         )
 
-        return CreateArtist(success=True, artist=artist)
+        return CreateArtist(success=True)
 
 
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     create_artist = CreateArtist.Field()
-
-
-class Query(object):
-    user = Field(UserType, id=Int(), email=String())
-    all_users = List(UserType)
-    current_user = Field(UserType)
-
-    def resolve_user(self, info, id, email):
-        if id is not None:
-            return User.objects.get(id=id)
-
-        if email is not None:
-            return User.objects.get(username=email)
-
-        return None
-
-    def resolve_all_users(self, info, **kwargs):
-        return User.objects.all()
-
-    def resolve_current_user(self, info):
-        user = info.context.user
-        if user.is_anonymous:
-            return None
-
-        return user

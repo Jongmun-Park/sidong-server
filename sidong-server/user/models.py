@@ -59,7 +59,7 @@ class Artist(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='user')
+        User, on_delete=models.CASCADE, related_name='artist')
     is_approved = models.BooleanField(default=False)
     artist_name = models.CharField(max_length=32)
     real_name = models.CharField(max_length=32)
