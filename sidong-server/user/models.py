@@ -66,9 +66,9 @@ class Artist(models.Model):
     phone = PhoneNumberField(null=True)
     description = models.TextField(blank=True)
     thumbnail = models.ForeignKey(
-        File, null=True, on_delete=models.SET_NULL, related_name='thumbnail')
+        File, null=True, on_delete=models.SET_NULL, related_name='artist_of_thumbnail')
     representative_work = models.ForeignKey(
-        File, null=True, on_delete=models.SET_NULL, related_name='representative_work')
+        File, null=True, on_delete=models.SET_NULL, related_name='artist_of_representative_work')
     category = models.IntegerField(
         choices=CHOICES_OF_CATEGORY, default=PAINTER)
     residence = models.IntegerField(

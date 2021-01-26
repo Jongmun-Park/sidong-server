@@ -22,6 +22,11 @@ class File(models.Model):
     content_type = models.CharField(max_length=128)
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
+    @property
+    def url(self):
+        return "https://s3.ap-northeast-2.amazonaws.com/" + self.bucket + \
+            ".storage.jakupsil.co.kr/" + self.path
+
     @staticmethod
     def upload_file(file, file_path, bucket):
         bucket += ".storage.jakupsil.co.kr"

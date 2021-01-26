@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from graphene_file_upload.scalars import Upload
-from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int
+from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
 from user.models import Artist
 from file.models import File
@@ -17,7 +17,7 @@ class ArtistType(DjangoObjectType):
 
 
 class Query(object):
-    user = Field(UserType, id=Int(), email=String())
+    user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
     artists = List(ArtistType)
 
