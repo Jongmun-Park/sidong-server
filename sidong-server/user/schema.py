@@ -19,7 +19,7 @@ class ArtistType(DjangoObjectType):
 class Query(object):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
-    artists = List(ArtistType)
+    artists = List(ArtistType, last_artist_id=ID(), page_size=Int())
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -34,8 +34,16 @@ class Query(object):
             return None
         return user
 
-    def resolve_artists(self, info):
-        return Artist.objects.all()
+    def resolve_artists(self, info, last_artist_id=None, page_size=12):
+        artists_filter = {'id__lt': last_artist_id}
+
+        if last_artist_id is None:
+            last_artist_id = Artist.objects.last().id
+            artists_filter = {'id__lte': last_artist_id}
+
+        return Artist.objects.filter(
+            **artists_filter,
+        ).order_by('-id')[:page_size]
 
 
 class CreateUser(Mutation):
