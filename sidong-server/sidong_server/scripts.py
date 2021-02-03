@@ -1,9 +1,10 @@
 
 def artistAutoCreate():
     file_instance = File.objects.get(id=3)
-    for user in range(0, 20):
+    for user in range(21, 50):
         user = str(user)
-        user_instance = User.objects.get(username=user)
+        user_instance = User.objects.create_user(
+            username=user, password='1234')
         Artist.objects.create(
             user=user_instance,
             artist_name='필명이여' + user,

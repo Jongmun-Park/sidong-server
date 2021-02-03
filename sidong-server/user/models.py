@@ -69,7 +69,7 @@ class Artist(models.Model):
         File, null=True, on_delete=models.SET_NULL, related_name='artist_of_thumbnail')
     representative_work = models.ForeignKey(
         File, null=True, on_delete=models.SET_NULL, related_name='artist_of_representative_work')
-    category = models.IntegerField(
+    category = models.PositiveIntegerField(
         choices=CHOICES_OF_CATEGORY, default=PAINTER)
-    residence = models.IntegerField(
+    residence = models.PositiveIntegerField(
         choices=CHOICES_OF_RESIDENCE, default=SEOUL)

@@ -15,11 +15,11 @@ class File(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    name = models.CharField(max_length=64, null=True)
+    name = models.CharField(max_length=128, null=True)
     bucket = models.CharField(
-        max_length=64, choices=CHOICES_OF_BUCKET, default=BUCKET_ASSETS)
+        max_length=8, choices=CHOICES_OF_BUCKET, default=BUCKET_ASSETS)
     path = models.CharField(max_length=256)
-    content_type = models.CharField(max_length=128)
+    content_type = models.CharField(max_length=32)
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     @property
