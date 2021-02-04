@@ -1,4 +1,4 @@
-# from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from file.models import File
 from user.models import Artist
@@ -122,3 +122,4 @@ class Art(models.Model):
     size = models.CharField(choices=CHOICES_OF_SIZE, max_length=8)
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
+    images = ArrayField(models.PositiveIntegerField(), default=list)
