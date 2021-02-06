@@ -1,5 +1,5 @@
 from graphene_django.types import DjangoObjectType
-from graphene import Field, ID, String
+from graphene import Field, ID, String, ObjectType
 from file.models import File
 
 
@@ -13,7 +13,7 @@ class FileType(DjangoObjectType):
         return self.url
 
 
-class Query(object):
+class Query(ObjectType):
     file = Field(FileType, id=ID())
 
     def resolve_file(self, info, id):

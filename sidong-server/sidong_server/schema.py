@@ -1,11 +1,14 @@
 from graphene import ObjectType, Schema
 import graphql_jwt
 
-import user.schema
+import art.schema
 import file.schema
+import user.schema
 
 
-class Query(user.schema.Query, file.schema.Query, ObjectType):
+class Query(art.schema.Query,
+            file.schema.Query,
+            user.schema.Query, ObjectType):
     # This class will inherit from multiple Queries
     # as we begin to add more apps to our project
     pass

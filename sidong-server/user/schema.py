@@ -16,7 +16,7 @@ class ArtistType(DjangoObjectType):
         model = Artist
 
 
-class Query(object):
+class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
     artists = List(ArtistType, last_artist_id=ID(), page_size=Int())
