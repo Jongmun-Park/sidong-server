@@ -99,6 +99,7 @@ class Art(models.Model):
     artist = models.ForeignKey(
         Artist, on_delete=models.SET_NULL, null=True, related_name='arts',
     )
+    name = models.CharField(max_length=128, blank=False)
     description = models.TextField(blank=True)
     medium = models.PositiveIntegerField(
         choices=CHOICES_OF_MEDIUM, default=PAINTING)
