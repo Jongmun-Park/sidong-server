@@ -3,7 +3,7 @@ from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
 from user.models import Artist
-from file.models import File
+from file.models import File, create_file, validate_file
 
 
 class UserType(DjangoObjectType):
@@ -79,15 +79,22 @@ class CreateArtist(Mutation):
                phone, description, category, residence, thumbnail, representative_work):
         current_user = info.context.user
 
-        thumbnail_file = File.create_file(
-            thumbnail[0], File.BUCKET_ASSETS, current_user)
+        validate_thumbnail = validate_file(thumbnail[0], File.BUCKET_ASSETS)
+        if validate_thumbnail['status'] == 'fail':
+            return CreateArtist(success=False, msg=validate_thumbnail['msg'])
 
+        validate_representative_work = validate_file(
+            representative_work[0], File.BUCKET_ASSETS)
+        if validate_representative_work['status'] == 'fail':
+            return CreateArtist(success=False, msg=validate_representative_work['msg'])
+
+        thumbnail_file = create_file(
+            thumbnail[0], File.BUCKET_ASSETS, current_user)
         if thumbnail_file['status'] == 'fail':
             return CreateArtist(success=False, msg=thumbnail_file['msg'])
 
-        representative_work_file = File.create_file(
+        representative_work_file = create_file(
             representative_work[0], File.BUCKET_ASSETS, current_user)
-
         if representative_work_file['status'] == 'fail':
             return CreateArtist(success=False, msg=representative_work_file['msg'])
 
