@@ -9,7 +9,7 @@ DRAWING = 2
 PRINT = 3
 PAPER = 4
 TEXTILE = 5
-ETC = 6
+ETC_MEDIUM = 6
 
 CHOICES_OF_MEDIUM = [
     (PAINTING, '회화'),
@@ -18,7 +18,7 @@ CHOICES_OF_MEDIUM = [
     (PRINT, '판화'),
     (PAPER, '종이'),
     (TEXTILE, '섬유'),
-    (ETC, '기타 매체'),
+    (ETC_MEDIUM, '기타 매체'),
 ]
 
 
@@ -75,13 +75,13 @@ class Art(models.Model):
     LANDSCAPE = 0
     PORTRAIT = 1
     SQUARE = 2
-    ETC = 3
+    ETC_ORIENTATION = 3
 
     CHOICES_OF_ORIENTATION = [
         (LANDSCAPE, '가로로 긴 배치'),
         (PORTRAIT, '세로가 긴 배치'),
         (SQUARE, '정사각형'),
-        (ETC, '기타'),
+        (ETC_ORIENTATION, '기타'),
     ]
 
     SMALL = 'small'

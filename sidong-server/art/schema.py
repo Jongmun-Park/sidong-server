@@ -1,6 +1,10 @@
-from graphene import ObjectType, Field, List, ID
+from django.db import transaction
+
+from graphene import ObjectType, Field, List, ID, Mutation, String, Int, Boolean
 from graphene_django.types import DjangoObjectType
-from art.models import Theme, Style, Technique
+from graphene_file_upload.scalars import Upload
+from art.models import Theme, Style, Technique, Art
+from file.models import File, create_file, validate_file
 
 
 class ThemeType(DjangoObjectType):
@@ -36,3 +40,65 @@ class Query(ObjectType):
             styles=styles,
             techniques=techniques,
         )
+
+
+class CreateArt(Mutation):
+    class Arguments:
+        art_images = Upload(required=True)
+        description = String(required=True)
+        width = Int(required=True)
+        height = Int(required=True)
+        is_framed = Boolean(required=True)
+        medium = ID(required=True)
+        name = String(required=True)
+        orientation = ID(required=True)
+        price = Int(required=True)
+        sale_status = ID(required=True)
+        style = ID(required=True)
+        technique = ID(required=True)
+        theme = ID(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    @transaction.atomic
+    def mutate(self, info, art_images, description, width,
+               height, is_framed, medium, name, orientation,
+               price, sale_status, style, technique, theme):
+        current_user = info.context.user
+
+        for image in art_images:
+            validate_image = validate_file(image, File.BUCKET_ASSETS)
+            if validate_image['status'] == 'fail':
+                return CreateArt(success=False, msg=validate_image['msg'])
+
+        image_file_ids = []
+
+        for image in art_images:
+            image_file = create_file(image, File.BUCKET_ASSETS, current_user)
+            if image_file['status'] == 'fail':
+                return CreateArt(success=False, msg=image_file['msg'])
+            image_file_ids.append(image_file['instance'].id)
+
+        Art.objects.create(
+            artist=current_user.artist,
+            images=image_file_ids,
+            description=description,
+            width=width,
+            height=height,
+            is_framed=is_framed,
+            medium=medium,
+            name=name,
+            orientation=orientation,
+            price=price,
+            sale_status=sale_status,
+            style=Style.objects.get(id=style),
+            technique=Technique.objects.get(id=technique),
+            theme=Theme.objects.get(id=theme),
+        )
+
+        return CreateArt(success=True)
+
+
+class Mutation(ObjectType):
+    create_art = CreateArt.Field()

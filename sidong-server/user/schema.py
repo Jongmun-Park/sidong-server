@@ -1,4 +1,6 @@
 from django.contrib.auth.models import User
+from django.db import transaction
+
 from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
@@ -75,6 +77,7 @@ class CreateArtist(Mutation):
     success = Boolean()
     msg = String()
 
+    @transaction.atomic
     def mutate(self, info, artist_name, real_name,
                phone, description, category, residence, thumbnail, representative_work):
         current_user = info.context.user

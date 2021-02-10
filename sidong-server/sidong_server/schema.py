@@ -14,7 +14,7 @@ class Query(art.schema.Query,
     pass
 
 
-class Mutation(user.schema.Mutation, ObjectType):
+class Mutation(art.schema.Mutation, user.schema.Mutation, ObjectType):
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
