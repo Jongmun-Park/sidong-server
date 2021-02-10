@@ -7,6 +7,11 @@ from art.models import Theme, Style, Technique, Art
 from file.models import File, create_file, validate_file
 
 
+class ArtType(DjangoObjectType):
+    class Meta:
+        model = Art
+
+
 class ThemeType(DjangoObjectType):
     class Meta:
         model = Theme
@@ -30,6 +35,7 @@ class ArtOptions(ObjectType):
 
 class Query(ObjectType):
     art_options = Field(ArtOptions, medium_id=ID())
+    arts = List(ArtType, last_art_id=ID(), page_size=Int())
 
     def resolve_art_options(parent, info, medium_id):
         themes = Theme.objects.filter(medium=medium_id)
@@ -40,6 +46,17 @@ class Query(ObjectType):
             styles=styles,
             techniques=techniques,
         )
+
+    def resolve_arts(self, info, last_art_id=None, page_size=12):
+        arts_filter = {'id__lt': last_art_id}
+
+        if last_art_id is None:
+            last_art_id = Art.objects.last().id
+            arts_filter = {'id__lte': last_art_id}
+
+        return Art.objects.filter(
+            **arts_filter,
+        ).order_by('-id')[:page_size]
 
 
 class CreateArt(Mutation):
