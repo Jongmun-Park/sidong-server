@@ -3,7 +3,7 @@ from django.db import transaction
 from graphene import ObjectType, Field, List, ID, Mutation, String, Int, Boolean
 from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
-from art.models import Theme, Style, Technique, Art
+from art.models import Theme, Style, Technique, Art, calculate_art_size
 from file.models import File, create_file, validate_file
 
 
@@ -103,6 +103,7 @@ class CreateArt(Mutation):
             description=description,
             width=width,
             height=height,
+            size=calculate_art_size(width, height),
             is_framed=is_framed,
             medium=medium,
             name=name,

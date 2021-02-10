@@ -124,3 +124,12 @@ class Art(models.Model):
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     images = ArrayField(models.PositiveIntegerField(), default=list)
+
+
+def calculate_art_size(width, height):
+    if width > 150 or height > 150:
+        return Art.LARGE
+    elif width > 50 or height > 50:
+        return Art.MEDIUM
+    else:
+        return Art.SMALL
