@@ -125,6 +125,11 @@ class Art(models.Model):
     height = models.PositiveIntegerField(default=0)
     images = ArrayField(models.PositiveIntegerField(), default=list)
 
+    @property
+    def representative_image_url(self):
+        representative_image_file = File.objects.get(id=self.images[0])
+        return representative_image_file.url
+
 
 def calculate_art_size(width, height):
     if width > 150 or height > 150:

@@ -11,6 +11,11 @@ class ArtType(DjangoObjectType):
     class Meta:
         model = Art
 
+    representative_image_url = String()
+
+    def resolve_representative_image_url(self, info):
+        return self.representative_image_url
+
 
 class ThemeType(DjangoObjectType):
     class Meta:
