@@ -74,7 +74,7 @@ class CreateArt(Mutation):
         medium = ID(required=True)
         name = String(required=True)
         orientation = ID(required=True)
-        price = Int(required=True)
+        price = Int()
         sale_status = ID(required=True)
         style = ID(required=True)
         technique = ID(required=True)
@@ -86,7 +86,7 @@ class CreateArt(Mutation):
     @transaction.atomic
     def mutate(self, info, art_images, description, width,
                height, is_framed, medium, name, orientation,
-               price, sale_status, style, technique, theme):
+               sale_status, style, technique, theme, price=None):
         current_user = info.context.user
 
         for image in art_images:
