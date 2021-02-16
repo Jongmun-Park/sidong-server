@@ -1,4 +1,3 @@
-
 def artistAutoCreate():
     file_instance = File.objects.get(id=3)
     for user in range(21, 50):
@@ -15,4 +14,29 @@ def artistAutoCreate():
             residence=Artist.SEOUL,
             thumbnail=file_instance,
             representative_work=file_instance,
+        )
+
+
+def artAutoCreate():
+    theme = Theme.objects.get(id=1)
+    style = Style.objects.get(id=7)
+    technique = Technique.objects.get(id=3)
+    for user in range(1, 30):
+        artist = Artist.objects.get(id=user)
+        Art.objects.create(
+            artist=artist,
+            name=artist.artist_name + "의 test 작품",
+            description="test 작품 description",
+            medium=0,
+            theme=theme,
+            style=style,
+            technique=technique,
+            sale_status=1,
+            is_framed=False,
+            price=100000,
+            orientation=1,
+            size="medium",
+            width=130,
+            height=110,
+            images=[20, 21],
         )
