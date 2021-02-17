@@ -39,8 +39,12 @@ class ArtOptions(ObjectType):
 
 
 class Query(ObjectType):
+    art = Field(ArtType, art_id=ID())
     art_options = Field(ArtOptions, medium_id=ID())
     arts = List(ArtType, last_art_id=ID(), page_size=Int())
+
+    def resolve_art(self, info, art_id):
+        return Art.objects.get(id=art_id)
 
     def resolve_art_options(parent, info, medium_id):
         themes = Theme.objects.filter(medium=medium_id)

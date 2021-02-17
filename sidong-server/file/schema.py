@@ -14,9 +14,7 @@ class FileType(DjangoObjectType):
 
 
 class Query(ObjectType):
-    file = Field(FileType, id=ID())
+    file = Field(FileType, file_id=ID())
 
-    def resolve_file(self, info, id):
-        if id is None:
-            return None
-        return File.objects.get(id=id)
+    def resolve_file(self, info, file_id):
+        return File.objects.get(id=file_id)
