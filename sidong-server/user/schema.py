@@ -16,6 +16,7 @@ class UserType(DjangoObjectType):
 class ArtistType(DjangoObjectType):
     class Meta:
         model = Artist
+        convert_choices_to_enum = False
 
 
 class Query(ObjectType):

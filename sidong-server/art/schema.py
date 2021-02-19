@@ -10,6 +10,7 @@ from file.models import File, create_file, validate_file
 class ArtType(DjangoObjectType):
     class Meta:
         model = Art
+        convert_choices_to_enum = ["size"]
 
     representative_image_url = String()
 
@@ -20,16 +21,19 @@ class ArtType(DjangoObjectType):
 class ThemeType(DjangoObjectType):
     class Meta:
         model = Theme
+        convert_choices_to_enum = False
 
 
 class StyleType(DjangoObjectType):
     class Meta:
         model = Style
+        convert_choices_to_enum = False
 
 
 class TechniqueType(DjangoObjectType):
     class Meta:
         model = Technique
+        convert_choices_to_enum = False
 
 
 class ArtOptions(ObjectType):
