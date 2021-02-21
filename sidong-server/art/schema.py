@@ -13,9 +13,18 @@ class ArtType(DjangoObjectType):
         convert_choices_to_enum = ["size"]
 
     representative_image_url = String()
+    image_urls = List(String)
 
     def resolve_representative_image_url(self, info):
         return self.representative_image_url
+
+    def resolve_image_urls(self, info):
+        image_urls = []
+        for image_id in self.images:
+            file_instance = File.objects.get(id=image_id)
+            image_urls.append(file_instance.url)
+
+        return image_urls
 
 
 class ThemeType(DjangoObjectType):
