@@ -7,13 +7,18 @@ from art.models import Theme, Style, Technique, Art, calculate_art_size
 from file.models import File, create_file, validate_file
 
 
+class ArtImageType(ObjectType):
+    id = ID()
+    url = String()
+
+
 class ArtType(DjangoObjectType):
     class Meta:
         model = Art
         convert_choices_to_enum = ["size"]
 
     representative_image_url = String()
-    image_urls = List(String)
+    image_urls = List(ArtImageType)
 
     def resolve_representative_image_url(self, info):
         return self.representative_image_url
@@ -22,7 +27,10 @@ class ArtType(DjangoObjectType):
         image_urls = []
         for image_id in self.images:
             file_instance = File.objects.get(id=image_id)
-            image_urls.append(file_instance.url)
+            image_urls.append({
+                'id': image_id,
+                'url': file_instance.url,
+            })
 
         return image_urls
 
