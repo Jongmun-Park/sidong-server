@@ -22,6 +22,7 @@ class ArtistType(DjangoObjectType):
 class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
+    artist = Field(ArtistType, artist_id=ID())
     artists = List(ArtistType, last_artist_id=ID(), page_size=Int())
 
     def resolve_user(self, info, id=None, email=None):
@@ -37,6 +38,9 @@ class Query(ObjectType):
             return None
         return user
 
+    def resolve_artist(self, info, artist_id):
+        return Artist.objects.get(id=artist_id)
+
     def resolve_artists(self, info, last_artist_id=None, page_size=12):
         artists_filter = {'id__lt': last_artist_id}
 
@@ -45,6 +49,7 @@ class Query(ObjectType):
             artists_filter = {'id__lte': last_artist_id}
 
         return Artist.objects.filter(
+            is_approved=True,
             **artists_filter,
         ).order_by('-id')[:page_size]
 
