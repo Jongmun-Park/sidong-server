@@ -74,12 +74,13 @@ class CreateArtist(Mutation):
         residence = Int(required=True)
         thumbnail = Upload(required=True)
         representative_work = Upload(required=True)
+        website = String()
 
     success = Boolean()
     msg = String()
 
     @transaction.atomic
-    def mutate(self, info, artist_name, real_name,
+    def mutate(self, info, artist_name, real_name, website,
                phone, description, category, residence, thumbnail, representative_work):
         current_user = info.context.user
 
@@ -112,6 +113,7 @@ class CreateArtist(Mutation):
             residence=residence,
             thumbnail=thumbnail_file['instance'],
             representative_work=representative_work_file['instance'],
+            website=website if website else None,
         )
 
         return CreateArtist(success=True)

@@ -72,3 +72,4 @@ class Artist(models.Model):
         choices=CHOICES_OF_CATEGORY, default=PAINTER)
     residence = models.PositiveIntegerField(
         choices=CHOICES_OF_RESIDENCE, default=SEOUL)
+    website = models.URLField(null=True, max_length=128)
