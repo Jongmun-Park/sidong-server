@@ -63,6 +63,7 @@ class Query(ObjectType):
     art = Field(ArtType, art_id=ID())
     art_options = Field(ArtOptions, medium_id=ID())
     arts = List(ArtType, last_art_id=ID(), page_size=Int())
+    arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
 
     def resolve_art(self, info, art_id):
         return Art.objects.get(id=art_id)
@@ -87,6 +88,19 @@ class Query(ObjectType):
         return Art.objects.filter(
             **arts_filter,
         ).order_by('-id')[:page_size]
+
+    def resolve_arts_by_artist(self, info, artist_id, last_art_id=None):
+        arts_filter = {'id__lt': last_art_id}
+        arts = Art.objects.filter(artist_id=artist_id)
+
+        if not arts:
+            return None
+
+        if last_art_id is None:
+            last_art_id = arts.last().id
+            arts_filter = {'id__lte': last_art_id}
+
+        return arts.filter(**arts_filter).order_by('-id')[:12]
 
 
 class CreateArt(Mutation):
