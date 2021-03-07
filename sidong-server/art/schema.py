@@ -1,6 +1,6 @@
 from django.db import transaction
-
-from graphene import ObjectType, Field, List, ID, Mutation, String, Int, Boolean
+from graphene import ObjectType, Field, List, ID, Mutation, String, \
+    Int, Boolean, Argument, InputObjectType
 from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from art.models import Theme, Style, Technique, Art, calculate_art_size
@@ -10,6 +10,12 @@ from file.models import File, create_file, validate_file
 class ArtImageType(ObjectType):
     id = ID()
     url = String()
+
+
+class SaleStatusType(InputObjectType):
+    on_sale = Boolean()
+    sold_out = Boolean()
+    not_for_sale = Boolean()
 
 
 class ArtType(DjangoObjectType):
@@ -62,7 +68,8 @@ class ArtOptions(ObjectType):
 class Query(ObjectType):
     art = Field(ArtType, art_id=ID())
     art_options = Field(ArtOptions, medium_id=ID())
-    arts = List(ArtType, last_art_id=ID(), page_size=Int())
+    arts = List(ArtType, last_art_id=ID(),
+                page_size=Int(), sale_status=Argument(SaleStatusType))
     arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
 
     def resolve_art(self, info, art_id):
@@ -78,7 +85,12 @@ class Query(ObjectType):
             techniques=techniques,
         )
 
-    def resolve_arts(self, info, last_art_id=None, page_size=12):
+    def resolve_arts(self, info, last_art_id=None, page_size=12,
+                     sale_status=None, size=None, orientation=None, price=None,
+                     medium=None, theme=None, style=None, technique=None):
+
+        print('sale_status:', sale_status)
+
         arts_filter = {'id__lt': last_art_id}
 
         if last_art_id is None:
