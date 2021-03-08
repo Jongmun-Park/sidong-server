@@ -1,6 +1,6 @@
 from django.db import transaction
 from graphene import ObjectType, Field, List, ID, Mutation, String, \
-    Int, Boolean, Argument, InputObjectType
+    Int, Boolean, Argument, InputObjectType, InputField
 from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from art.models import Theme, Style, Technique, Art, calculate_art_size
@@ -10,12 +10,6 @@ from file.models import File, create_file, validate_file
 class ArtImageType(ObjectType):
     id = ID()
     url = String()
-
-
-class SaleStatusType(InputObjectType):
-    on_sale = Boolean()
-    sold_out = Boolean()
-    not_for_sale = Boolean()
 
 
 class ArtType(DjangoObjectType):
@@ -65,6 +59,12 @@ class ArtOptions(ObjectType):
     techniques = List(TechniqueType)
 
 
+class SaleStatusType(InputObjectType):
+    on_sale = InputField(Boolean)
+    sold_out = InputField(Boolean)
+    not_for_sale = InputField(Boolean)
+
+
 class Query(ObjectType):
     art = Field(ArtType, art_id=ID())
     art_options = Field(ArtOptions, medium_id=ID())
@@ -89,17 +89,31 @@ class Query(ObjectType):
                      sale_status=None, size=None, orientation=None, price=None,
                      medium=None, theme=None, style=None, technique=None):
 
-        print('sale_status:', sale_status)
+        arts_filter = {}
+        id_filter = {}
 
-        arts_filter = {'id__lt': last_art_id}
+        if sale_status:
+            sale_status_list = []
+            if sale_status['on_sale'] is True:
+                sale_status_list.append(Art.ON_SALE)
+            if sale_status['sold_out'] is True:
+                sale_status_list.append(Art.SOLD_OUT)
+            if sale_status['not_for_sale'] is True:
+                sale_status_list.append(Art.NOT_FOR_SALE)
+            arts_filter['sale_status__in'] = sale_status_list
+
+        if arts_filter:
+            arts = Art.objects.filter(**arts_filter)
+        else:
+            arts = Art.objects.all()
 
         if last_art_id is None:
-            last_art_id = Art.objects.last().id
-            arts_filter = {'id__lte': last_art_id}
+            last_art_id = arts.last().id
+            id_filter['id__lte'] = last_art_id
+        else:
+            id_filter['id__lt'] = last_art_id
 
-        return Art.objects.filter(
-            **arts_filter,
-        ).order_by('-id')[:page_size]
+        return arts.filter(**id_filter).order_by('-id')[:page_size]
 
     def resolve_arts_by_artist(self, info, artist_id, last_art_id=None):
         arts_filter = {'id__lt': last_art_id}
