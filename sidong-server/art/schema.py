@@ -59,17 +59,33 @@ class ArtOptions(ObjectType):
     techniques = List(TechniqueType)
 
 
-class SaleStatusType(InputObjectType):
+class SaleStatusInput(InputObjectType):
     on_sale = InputField(Boolean)
     sold_out = InputField(Boolean)
     not_for_sale = InputField(Boolean)
+
+
+class OrientationInput(InputObjectType):
+    landscape = InputField(Boolean)
+    portrait = InputField(Boolean)
+    square = InputField(Boolean)
+    etc = InputField(Boolean)
+
+
+class ArtSizeInput(InputObjectType):
+    small = InputField(Boolean)
+    medium = InputField(Boolean)
+    large = InputField(Boolean)
 
 
 class Query(ObjectType):
     art = Field(ArtType, art_id=ID())
     art_options = Field(ArtOptions, medium_id=ID())
     arts = List(ArtType, last_art_id=ID(),
-                page_size=Int(), sale_status=Argument(SaleStatusType))
+                page_size=Int(), sale_status=Argument(SaleStatusInput),
+                orientation=Argument(OrientationInput), size=Argument(ArtSizeInput),
+                price=List(Int), medium=String(), style=String(),
+                technique=String(), theme=String())
     arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
 
     def resolve_art(self, info, art_id):
@@ -92,15 +108,47 @@ class Query(ObjectType):
         arts_filter = {}
         id_filter = {}
 
-        if sale_status:
+        if sale_status:     # 필터 적용
             sale_status_list = []
+            orientation_list = []
+            size_list = []
+
             if sale_status['on_sale'] is True:
                 sale_status_list.append(Art.ON_SALE)
             if sale_status['sold_out'] is True:
                 sale_status_list.append(Art.SOLD_OUT)
             if sale_status['not_for_sale'] is True:
                 sale_status_list.append(Art.NOT_FOR_SALE)
+
+            if orientation['landscape'] is True:
+                orientation_list.append(Art.LANDSCAPE)
+            if orientation['portrait'] is True:
+                orientation_list.append(Art.PORTRAIT)
+            if orientation['square'] is True:
+                orientation_list.append(Art.SQUARE)
+            if orientation['etc'] is True:
+                orientation_list.append(Art.ETC_ORIENTATION)
+
+            if size['small'] is True:
+                size_list.append(Art.SMALL)
+            if size['medium'] is True:
+                size_list.append(Art.MEDIUM)
+            if size['large'] is True:
+                size_list.append(Art.LARGE)
+
+            if medium != 'none':
+                arts_filter['medium'] = medium
+            if style != 'none':
+                arts_filter['style'] = style
+            if technique != 'none':
+                arts_filter['technique'] = technique
+            if theme != 'none':
+                arts_filter['theme'] = theme
+
             arts_filter['sale_status__in'] = sale_status_list
+            arts_filter['orientation__in'] = orientation_list
+            arts_filter['size__in'] = size_list
+            arts_filter['price__range'] = price
 
         if arts_filter:
             arts = Art.objects.filter(**arts_filter)
