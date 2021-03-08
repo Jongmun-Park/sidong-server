@@ -41,7 +41,7 @@ class Query(ObjectType):
     def resolve_artist(self, info, artist_id):
         return Artist.objects.get(id=artist_id)
 
-    def resolve_artists(self, info, last_artist_id=None, page_size=12):
+    def resolve_artists(self, info, last_artist_id=None, page_size=20):
         artists_filter = {'id__lt': last_artist_id}
 
         if last_artist_id is None:

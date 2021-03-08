@@ -85,7 +85,7 @@ class Query(ObjectType):
             techniques=techniques,
         )
 
-    def resolve_arts(self, info, last_art_id=None, page_size=12,
+    def resolve_arts(self, info, last_art_id=None, page_size=20,
                      sale_status=None, size=None, orientation=None, price=None,
                      medium=None, theme=None, style=None, technique=None):
 
@@ -106,6 +106,9 @@ class Query(ObjectType):
             arts = Art.objects.filter(**arts_filter)
         else:
             arts = Art.objects.all()
+
+        if not arts:
+            return None
 
         if last_art_id is None:
             last_art_id = arts.last().id
