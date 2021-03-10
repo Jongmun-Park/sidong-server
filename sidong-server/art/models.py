@@ -1,5 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.contrib.auth.models import User
 from file.models import File
 from user.models import Artist
 
@@ -129,6 +130,21 @@ class Art(models.Model):
     def representative_image_url(self):
         representative_image_file = File.objects.get(id=self.images[0])
         return representative_image_file.url
+
+
+class Like(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='like_arts',
+    )
+    art = models.ForeignKey(
+        Art, on_delete=models.CASCADE, related_name='like_users',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'art'], name='unique_like'),
+        ]
 
 
 def calculate_art_size(width, height):
