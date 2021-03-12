@@ -3,7 +3,8 @@ from graphene import ObjectType, Field, List, ID, Mutation, String, \
     Int, Boolean, Argument, InputObjectType, InputField
 from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
-from art.models import Theme, Style, Technique, Art, calculate_art_size
+from art.models import Theme, Style, Technique, Art, \
+    calculate_art_size, Like
 from file.models import File, create_file, validate_file
 
 
@@ -19,6 +20,7 @@ class ArtType(DjangoObjectType):
 
     representative_image_url = String()
     image_urls = List(ArtImageType)
+    current_user_likes_this = Boolean()
 
     def resolve_representative_image_url(self, info):
         return self.representative_image_url
@@ -33,6 +35,12 @@ class ArtType(DjangoObjectType):
             })
 
         return image_urls
+
+    def resolve_current_user_likes_this(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return False
+        return Like.objects.filter(user=user, art_id=self.id).exists()
 
 
 class ThemeType(DjangoObjectType):
@@ -57,6 +65,11 @@ class ArtOptions(ObjectType):
     themes = List(ThemeType)
     styles = List(StyleType)
     techniques = List(TechniqueType)
+
+
+class ArtLikeType(DjangoObjectType):
+    class Meta:
+        model = Like
 
 
 class SaleStatusInput(InputObjectType):
@@ -239,5 +252,39 @@ class CreateArt(Mutation):
         return CreateArt(success=True)
 
 
+class LikeArt(Mutation):
+    class Arguments:
+        art_id = ID(required=True)
+
+    success = Boolean()
+
+    def mutate(self, info, art_id):
+        user = info.context.user
+        if user.is_anonymous:
+            return LikeArt(success=False)
+
+        art = Art.objects.get(id=art_id)
+        Like.objects.create(user=user, art=art)
+        return LikeArt(success=True)
+
+
+class CancelLikeArt(Mutation):
+    class Arguments:
+        art_id = ID(required=True)
+
+    success = Boolean()
+
+    def mutate(self, info, art_id):
+        user = info.context.user
+        if user.is_anonymous:
+            return CancelLikeArt(success=False)
+
+        like = Like.objects.filter(user=user, art_id=art_id)
+        like.delete()
+        return CancelLikeArt(success=True)
+
+
 class Mutation(ObjectType):
     create_art = CreateArt.Field()
+    like_art = LikeArt.Field()
+    cancel_like_art = CancelLikeArt.Field()
