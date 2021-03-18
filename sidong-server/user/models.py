@@ -73,3 +73,19 @@ class Artist(models.Model):
     residence = models.PositiveIntegerField(
         choices=CHOICES_OF_RESIDENCE, default=SEOUL)
     website = models.URLField(null=True, max_length=128)
+
+
+class Like(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='like_artists',
+    )
+    artist = models.ForeignKey(
+        Artist, on_delete=models.CASCADE, related_name='like_users'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'artist'], name='unique_like_artist'
+            )
+        ]
