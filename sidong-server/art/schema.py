@@ -149,13 +149,13 @@ class Query(ObjectType):
             if size['large'] is True:
                 size_list.append(Art.LARGE)
 
-            if medium != 'none':
+            if medium != 'all':
                 arts_filter['medium'] = medium
-            if style != 'none':
+            if style != 'all':
                 arts_filter['style'] = style
-            if technique != 'none':
+            if technique != 'all':
                 arts_filter['technique'] = technique
-            if theme != 'none':
+            if theme != 'all':
                 arts_filter['theme'] = theme
 
             arts_filter['sale_status__in'] = sale_status_list
@@ -172,8 +172,7 @@ class Query(ObjectType):
             return None
 
         if last_art_id is None:
-            last_art_id = arts.last().id
-            id_filter['id__lte'] = last_art_id
+            id_filter['id__lte'] = arts.last().id
         else:
             id_filter['id__lt'] = last_art_id
 

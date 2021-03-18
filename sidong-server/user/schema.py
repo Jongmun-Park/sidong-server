@@ -23,7 +23,8 @@ class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
     artist = Field(ArtistType, artist_id=ID())
-    artists = List(ArtistType, last_artist_id=ID(), page_size=Int())
+    artists = List(ArtistType, last_artist_id=ID(), page_size=Int(),
+                   category=String(), residence=String())
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -41,16 +42,34 @@ class Query(ObjectType):
     def resolve_artist(self, info, artist_id):
         return Artist.objects.get(id=artist_id)
 
-    def resolve_artists(self, info, last_artist_id=None, page_size=20):
-        artists_filter = {'id__lt': last_artist_id}
+    def resolve_artists(self, info, last_artist_id=None, page_size=20,
+                        category=None, residence=None):
+
+        artists_filter = {}
+        id_filter = {}
+
+        if category:  # 필터 적용
+            if category != 'all':
+                artists_filter['category'] = category
+            if residence != 'all':
+                artists_filter['residence'] = residence
+
+        if artists_filter:
+            artists = Artist.objects.filter(**artists_filter)
+        else:
+            artists = Artist.objects.all()
+
+        if not artists:
+            return None
 
         if last_artist_id is None:
-            last_artist_id = Artist.objects.last().id
-            artists_filter = {'id__lte': last_artist_id}
+            id_filter['id__lte'] = artists.last().id
+        else:
+            id_filter['id__lt'] = last_artist_id
 
-        return Artist.objects.filter(
+        return artists.filter(
             is_approved=True,
-            **artists_filter,
+            **id_filter,
         ).order_by('-id')[:page_size]
 
 
