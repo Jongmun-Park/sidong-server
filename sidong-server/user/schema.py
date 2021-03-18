@@ -2,9 +2,10 @@ from django.contrib.auth.models import User
 from django.db import transaction
 
 from graphene_file_upload.scalars import Upload
-from graphene import Mutation, ObjectType, String, Boolean, Field, List, Int, ID
+from graphene import Mutation, ObjectType, String, Boolean, \
+    Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
-from user.models import Artist
+from user.models import Artist, Like
 from file.models import File, create_file, validate_file
 
 
@@ -17,6 +18,19 @@ class ArtistType(DjangoObjectType):
     class Meta:
         model = Artist
         convert_choices_to_enum = False
+
+    current_user_likes_this_artist = Boolean()
+
+    def resolve_current_user_likes_this_artist(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return False
+        return Like.objects.filter(user=user, artist_id=self.id).exists()
+
+
+class ArtistLikeType(DjangoObjectType):
+    class Meta:
+        model = Like
 
 
 class Query(ObjectType):
@@ -143,6 +157,46 @@ class CreateArtist(Mutation):
         return CreateArtist(success=True)
 
 
+class LikeArtist(Mutation):
+    class Arguments:
+        artist_id = ID(required=True)
+
+    success = Boolean()
+
+    def mutate(self, info, artist_id):
+        user = info.context.user
+        if user.is_anonymous:
+            return LikeArtist(success=False)
+
+        artist = Artist.objects.get(id=artist_id)
+        try:
+            Like.objects.create(user=user, artist=artist)
+        except:
+            # unique constraint 에러 처리를 위한 GraphQLLocatedError가 import 되지 않아
+            # 임시적으로 모든 에러를 예외 처리
+            return LikeArtist(success=True)
+
+        return LikeArtist(success=True)
+
+
+class CancelLikeArtist(Mutation):
+    class Arguments:
+        artist_id = ID(required=True)
+
+    success = Boolean()
+
+    def mutate(self, info, artist_id):
+        user = info.context.user
+        if user.is_anonymous:
+            return CancelLikeArtist(success=False)
+
+        like = Like.objects.filter(user=user, artist_id=artist_id)
+        like.delete()
+        return CancelLikeArtist(success=True)
+
+
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     create_artist = CreateArtist.Field()
+    like_artist = LikeArtist.Field()
+    cancel_like_artist = CancelLikeArtist.Field()

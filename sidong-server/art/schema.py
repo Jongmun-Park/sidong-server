@@ -266,9 +266,8 @@ class LikeArt(Mutation):
         try:
             Like.objects.create(user=user, art=art)
         except:
-            # duplicate key value violates unique constraint "unique_like" 에러 발생.
-            # graphql.error.located_error.GraphQLLocatedError 에러가 import 되지 않아
-            # 임시적으로 에러 전부를 예외 처리
+            # unique constraint 에러 처리를 위한 GraphQLLocatedError가 import 되지 않아
+            # 임시적으로 모든 에러를 예외 처리
             return LikeArt(success=True)
 
         return LikeArt(success=True)
