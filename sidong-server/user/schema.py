@@ -169,12 +169,7 @@ class LikeArtist(Mutation):
             return LikeArtist(success=False)
 
         artist = Artist.objects.get(id=artist_id)
-        try:
-            Like.objects.create(user=user, artist=artist)
-        except:
-            # unique constraint 에러 처리를 위한 GraphQLLocatedError가 import 되지 않아
-            # 임시적으로 모든 에러를 예외 처리
-            return LikeArtist(success=True)
+        Like.objects.create(user=user, artist=artist)
 
         return LikeArtist(success=True)
 
