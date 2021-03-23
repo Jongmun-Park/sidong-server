@@ -6,6 +6,7 @@ from graphene import Mutation, ObjectType, String, Boolean, \
     Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
 from user.models import Artist, Like
+from art.models import Like as ArtLike
 from file.models import File, create_file, validate_file
 
 
@@ -33,12 +34,19 @@ class ArtistLikeType(DjangoObjectType):
         model = Like
 
 
+class UserLikingContents(ObjectType):
+    liking_arts_count = Int()
+    liking_artists_count = Int()
+
+
 class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
     artist = Field(ArtistType, artist_id=ID())
     artists = List(ArtistType, last_artist_id=ID(), page_size=Int(),
                    category=String(), residence=String())
+    user_liking_contents = Field(
+        UserLikingContents, email=String(required=True))
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -85,6 +93,13 @@ class Query(ObjectType):
             is_approved=True,
             **id_filter,
         ).order_by('-id')[:page_size]
+
+    def resolve_user_liking_contents(self, info, email):
+        user = User.objects.get(username=email)
+        return {
+            'liking_arts_count': ArtLike.objects.filter(user=user).count(),
+            'liking_artists_count': Like.objects.filter(user=user).count(),
+        }
 
 
 class CreateUser(Mutation):
