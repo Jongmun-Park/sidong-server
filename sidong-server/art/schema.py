@@ -209,6 +209,9 @@ class Query(ObjectType):
         like_instances = like_instances.filter(
             **like_filter).order_by('-id')[:20]
 
+        if not like_instances:
+            return None
+
         return {
             'last_like_id': like_instances[len(like_instances) - 1].id,
             'arts': [like.art for like in like_instances],

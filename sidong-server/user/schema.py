@@ -5,7 +5,7 @@ from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, \
     Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
-from user.models import Artist, Like
+from user.models import Artist, Like as ArtistLike
 from art.models import Like as ArtLike
 from file.models import File, create_file, validate_file
 
@@ -13,6 +13,15 @@ from file.models import File, create_file, validate_file
 class UserType(DjangoObjectType):
     class Meta:
         model = User
+
+    liking_arts_count = Int()
+    liking_artists_count = Int()
+
+    def resolve_liking_arts_count(self, info):
+        return ArtLike.objects.filter(user_id=self.id).count()
+
+    def resolve_liking_artists_count(self, info):
+        return ArtistLike.objects.filter(user_id=self.id).count()
 
 
 class ArtistType(DjangoObjectType):
@@ -26,17 +35,7 @@ class ArtistType(DjangoObjectType):
         user = info.context.user
         if user.is_anonymous:
             return False
-        return Like.objects.filter(user=user, artist_id=self.id).exists()
-
-
-class ArtistLikeType(DjangoObjectType):
-    class Meta:
-        model = Like
-
-
-class UserLikingContents(ObjectType):
-    liking_arts_count = Int()
-    liking_artists_count = Int()
+        return ArtistLike.objects.filter(user=user, artist_id=self.id).exists()
 
 
 class Query(ObjectType):
@@ -45,8 +44,6 @@ class Query(ObjectType):
     artist = Field(ArtistType, artist_id=ID())
     artists = List(ArtistType, last_artist_id=ID(), page_size=Int(),
                    category=String(), residence=String())
-    user_liking_contents = Field(
-        UserLikingContents, user_id=ID(required=True))
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -93,13 +90,6 @@ class Query(ObjectType):
             is_approved=True,
             **id_filter,
         ).order_by('-id')[:page_size]
-
-    def resolve_user_liking_contents(self, info, user_id):
-        user = User.objects.get(id=user_id)
-        return {
-            'liking_arts_count': ArtLike.objects.filter(user=user).count(),
-            'liking_artists_count': Like.objects.filter(user=user).count(),
-        }
 
 
 class CreateUser(Mutation):
@@ -184,7 +174,7 @@ class LikeArtist(Mutation):
             return LikeArtist(success=False)
 
         artist = Artist.objects.get(id=artist_id)
-        Like.objects.create(user=user, artist=artist)
+        ArtistLike.objects.create(user=user, artist=artist)
 
         return LikeArtist(success=True)
 
@@ -200,7 +190,7 @@ class CancelLikeArtist(Mutation):
         if user.is_anonymous:
             return CancelLikeArtist(success=False)
 
-        like = Like.objects.filter(user=user, artist_id=artist_id)
+        like = ArtistLike.objects.filter(user=user, artist_id=artist_id)
         like.delete()
         return CancelLikeArtist(success=True)
 
