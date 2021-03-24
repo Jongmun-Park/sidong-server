@@ -68,9 +68,9 @@ class ArtOptions(ObjectType):
     techniques = List(TechniqueType)
 
 
-class ArtLikeType(DjangoObjectType):
-    class Meta:
-        model = Like
+class ArtLikeType(ObjectType):
+    last_like_id = ID()
+    arts = List(ArtType)
 
 
 class SaleStatusInput(InputObjectType):
@@ -101,7 +101,7 @@ class Query(ObjectType):
                 price=List(Int), medium=String(), style=String(),
                 technique=String(), theme=String())
     arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
-    user_liking_arts = List(ArtType, email=String(
+    user_liking_arts = Field(ArtLikeType, user_id=ID(
         required=True), last_like_id=ID())
 
     def resolve_art(self, info, art_id):
@@ -194,10 +194,10 @@ class Query(ObjectType):
 
         return arts.filter(**arts_filter).order_by('-id')[:20]
 
-    def resolve_user_liking_arts(self, info, email, last_like_id=None):
+    def resolve_user_liking_arts(self, info, user_id, last_like_id=None):
         like_filter = {'id__lt': last_like_id}
         like_instances = Like.objects.filter(
-            user=User.objects.get(username=email))
+            user=User.objects.get(id=user_id))
 
         if not like_instances:
             return None
@@ -209,7 +209,10 @@ class Query(ObjectType):
         like_instances = like_instances.filter(
             **like_filter).order_by('-id')[:20]
 
-        return [like.art for like in like_instances]
+        return {
+            'last_like_id': like_instances[len(like_instances) - 1].id,
+            'arts': [like.art for like in like_instances],
+        }
 
 
 class CreateArt(Mutation):

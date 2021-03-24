@@ -46,7 +46,7 @@ class Query(ObjectType):
     artists = List(ArtistType, last_artist_id=ID(), page_size=Int(),
                    category=String(), residence=String())
     user_liking_contents = Field(
-        UserLikingContents, email=String(required=True))
+        UserLikingContents, user_id=ID(required=True))
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -94,8 +94,8 @@ class Query(ObjectType):
             **id_filter,
         ).order_by('-id')[:page_size]
 
-    def resolve_user_liking_contents(self, info, email):
-        user = User.objects.get(username=email)
+    def resolve_user_liking_contents(self, info, user_id):
+        user = User.objects.get(id=user_id)
         return {
             'liking_arts_count': ArtLike.objects.filter(user=user).count(),
             'liking_artists_count': Like.objects.filter(user=user).count(),
