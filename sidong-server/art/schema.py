@@ -3,6 +3,7 @@ from graphene import ObjectType, Field, List, ID, Mutation, String, \
     Int, Boolean, Argument, InputObjectType, InputField
 from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
+from django.contrib.auth.models import User
 from art.models import Theme, Style, Technique, Art, \
     calculate_art_size, Like
 from file.models import File, create_file, validate_file
@@ -100,6 +101,8 @@ class Query(ObjectType):
                 price=List(Int), medium=String(), style=String(),
                 technique=String(), theme=String())
     arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
+    user_liking_arts = List(ArtType, email=String(
+        required=True), last_like_id=ID())
 
     def resolve_art(self, info, art_id):
         return Art.objects.get(id=art_id)
@@ -189,7 +192,24 @@ class Query(ObjectType):
             last_art_id = arts.last().id
             arts_filter = {'id__lte': last_art_id}
 
-        return arts.filter(**arts_filter).order_by('-id')[:12]
+        return arts.filter(**arts_filter).order_by('-id')[:20]
+
+    def resolve_user_liking_arts(self, info, email, last_like_id=None):
+        like_filter = {'id__lt': last_like_id}
+        like_instances = Like.objects.filter(
+            user=User.objects.get(username=email))
+
+        if not like_instances:
+            return None
+
+        if last_like_id is None:
+            last_like_id = like_instances.last().id
+            like_filter = {'id__lte': last_like_id}
+
+        like_instances = like_instances.filter(
+            **like_filter).order_by('-id')[:20]
+
+        return [like.art for like in like_instances]
 
 
 class CreateArt(Mutation):
