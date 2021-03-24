@@ -69,6 +69,7 @@ class ArtOptions(ObjectType):
 
 
 class ArtLikeType(ObjectType):
+    id = ID()
     last_like_id = ID()
     arts = List(ArtType)
 
@@ -209,11 +210,9 @@ class Query(ObjectType):
         like_instances = like_instances.filter(
             **like_filter).order_by('-id')[:20]
 
-        if not like_instances:
-            return None
-
         return {
-            'last_like_id': like_instances[len(like_instances) - 1].id,
+            'id': user_id,
+            'last_like_id': like_instances[len(like_instances) - 1].id if like_instances else 0,
             'arts': [like.art for like in like_instances],
         }
 
