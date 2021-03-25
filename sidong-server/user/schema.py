@@ -38,12 +38,20 @@ class ArtistType(DjangoObjectType):
         return ArtistLike.objects.filter(user=user, artist_id=self.id).exists()
 
 
+class ArtistLikeType(ObjectType):
+    id = ID()
+    last_like_id = ID()
+    artists = List(ArtistType)
+
+
 class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
     artist = Field(ArtistType, artist_id=ID())
     artists = List(ArtistType, last_artist_id=ID(), page_size=Int(),
                    category=String(), residence=String())
+    user_liking_artists = Field(ArtistLikeType, user_id=ID(required=True),
+                                last_like_id=ID())
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -90,6 +98,28 @@ class Query(ObjectType):
             is_approved=True,
             **id_filter,
         ).order_by('-id')[:page_size]
+
+    def resolve_user_liking_artists(self, info, user_id, last_like_id=None):
+        like_filter = {'id__lt': last_like_id}
+        like_instances = ArtistLike.objects.filter(
+            user=User.objects.get(id=user_id)
+        )
+
+        if not like_instances:
+            return None
+
+        if last_like_id is None:
+            last_like_id = like_instances.last().id
+            like_filter = {'id__lte': last_like_id}
+
+        like_instances = like_instances.filter(
+            **like_filter).order_by('-id')[:20]
+
+        return {
+            'id': user_id,
+            'last_like_id': like_instances[len(like_instances) - 1].id if like_instances else None,
+            'artists': [like.artist for like in like_instances],
+        }
 
 
 class CreateUser(Mutation):

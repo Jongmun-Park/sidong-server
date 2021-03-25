@@ -102,8 +102,8 @@ class Query(ObjectType):
                 price=List(Int), medium=String(), style=String(),
                 technique=String(), theme=String())
     arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
-    user_liking_arts = Field(ArtLikeType, user_id=ID(
-        required=True), last_like_id=ID())
+    user_liking_arts = Field(ArtLikeType, user_id=ID(required=True),
+                             last_like_id=ID())
 
     def resolve_art(self, info, art_id):
         return Art.objects.get(id=art_id)
@@ -212,7 +212,7 @@ class Query(ObjectType):
 
         return {
             'id': user_id,
-            'last_like_id': like_instances[len(like_instances) - 1].id if like_instances else 0,
+            'last_like_id': like_instances[len(like_instances) - 1].id if like_instances else None,
             'arts': [like.art for like in like_instances],
         }
 
