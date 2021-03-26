@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from art.models import Theme, Style, Technique, Art, \
     calculate_art_size, Like
 from file.models import File, create_file, validate_file
+from user.models import Artist
 
 
 class ArtImageType(ObjectType):
@@ -74,6 +75,11 @@ class ArtLikeType(ObjectType):
     arts = List(ArtType)
 
 
+class ArtConnection(ObjectType):
+    arts = List(ArtType)
+    total_count = Int()
+
+
 class SaleStatusInput(InputObjectType):
     on_sale = InputField(Boolean)
     sold_out = InputField(Boolean)
@@ -102,6 +108,8 @@ class Query(ObjectType):
                 price=List(Int), medium=String(), style=String(),
                 technique=String(), theme=String())
     arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
+    current_user_arts_offset_based = Field(
+        ArtConnection, page=Int(), page_size=Int())
     user_liking_arts = Field(ArtLikeType, user_id=ID(required=True),
                              last_like_id=ID())
 
@@ -194,6 +202,19 @@ class Query(ObjectType):
             arts_filter = {'id__lte': last_art_id}
 
         return arts.filter(**arts_filter).order_by('-id')[:20]
+
+    def resolve_current_user_arts_offset_based(self, info, page=0, page_size=10):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+
+        arts = Art.objects.filter(
+            artist=Artist.objects.get(user=user))
+
+        return {
+            'arts': arts.order_by('-id')[page*page_size:(page + 1)*page_size],
+            'total_count': arts.count(),
+        }
 
     def resolve_user_liking_arts(self, info, user_id, last_like_id=None):
         like_filter = {'id__lt': last_like_id}
