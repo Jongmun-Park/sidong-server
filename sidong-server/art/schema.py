@@ -8,6 +8,7 @@ from art.models import Theme, Style, Technique, Art, \
     calculate_art_size, Like
 from file.models import File, create_file, validate_file
 from user.models import Artist
+from django.utils import timezone
 
 
 class ArtImageType(ObjectType):
@@ -43,6 +44,9 @@ class ArtType(DjangoObjectType):
         if user.is_anonymous:
             return False
         return Like.objects.filter(user=user, art_id=self.id).exists()
+
+    def resolve_created_at(self, info):
+        return timezone.localdate(self.created_at)
 
 
 class ThemeType(DjangoObjectType):
