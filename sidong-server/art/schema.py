@@ -120,10 +120,14 @@ class Query(ObjectType):
     def resolve_art(self, info, art_id):
         return Art.objects.get(id=art_id)
 
-    def resolve_art_options(parent, info, medium_id):
+    def resolve_art_options(parent, info, medium_id=None):
+        if medium_id is None:
+            return None
+
         themes = Theme.objects.filter(medium=medium_id)
         styles = Style.objects.filter(medium=medium_id)
         techniques = Technique.objects.filter(medium=medium_id)
+
         return ArtOptions(
             themes=themes,
             styles=styles,
