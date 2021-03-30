@@ -325,7 +325,6 @@ class UpdateArt(Mutation):
     success = Boolean()
     msg = String()
 
-    @transaction.atomic
     def mutate(self, info, art_id, art_images, description, width,
                height, is_framed, medium, name, orientation,
                sale_status, style, technique, theme, price=None):
@@ -353,6 +352,23 @@ class UpdateArt(Mutation):
         )
 
         return UpdateArt(success=True)
+
+
+class DeleteArt(Mutation):
+    class Arguments:
+        art_id = ID(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    def mutate(self, info, art_id):
+        art = Art.objects.filter(id=art_id)
+
+        if info.context.user.id != art.get().artist.user.id:
+            return DeleteArt(success=False, msg="작품을 삭제할 권한이 없습니다.")
+
+        art.delete()
+        return DeleteArt(success=True)
 
 
 class LikeArt(Mutation):
@@ -391,5 +407,6 @@ class CancelLikeArt(Mutation):
 class Mutation(ObjectType):
     create_art = CreateArt.Field()
     update_art = UpdateArt.Field()
+    delete_art = DeleteArt.Field()
     like_art = LikeArt.Field()
     cancel_like_art = CancelLikeArt.Field()
