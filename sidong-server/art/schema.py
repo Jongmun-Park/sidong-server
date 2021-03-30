@@ -305,6 +305,56 @@ class CreateArt(Mutation):
         return CreateArt(success=True)
 
 
+class UpdateArt(Mutation):
+    class Arguments:
+        art_id = ID(required=True)
+        art_images = List(ID, required=True)
+        description = String(required=True)
+        width = Int(required=True)
+        height = Int(required=True)
+        is_framed = Boolean(required=True)
+        medium = ID(required=True)
+        name = String(required=True)
+        orientation = ID(required=True)
+        price = Int()
+        sale_status = ID(required=True)
+        style = ID(required=True)
+        technique = ID(required=True)
+        theme = ID(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    @transaction.atomic
+    def mutate(self, info, art_id, art_images, description, width,
+               height, is_framed, medium, name, orientation,
+               sale_status, style, technique, theme, price=None):
+
+        art = Art.objects.filter(id=art_id)
+
+        if info.context.user.id != art.get().artist.user.id:
+            return UpdateArt(success=False, msg="작품을 수정할 권한이 없습니다.")
+
+        art.update(
+            images=art_images,
+            description=description,
+            width=width,
+            height=height,
+            size=calculate_art_size(width, height),
+            is_framed=is_framed,
+            medium=medium,
+            name=name,
+            orientation=orientation,
+            price=price,
+            sale_status=sale_status,
+            style=Style.objects.get(id=style),
+            technique=Technique.objects.get(id=technique),
+            theme=Theme.objects.get(id=theme),
+        )
+
+        return UpdateArt(success=True)
+
+
 class LikeArt(Mutation):
     class Arguments:
         art_id = ID(required=True)
@@ -340,5 +390,6 @@ class CancelLikeArt(Mutation):
 
 class Mutation(ObjectType):
     create_art = CreateArt.Field()
+    update_art = UpdateArt.Field()
     like_art = LikeArt.Field()
     cancel_like_art = CancelLikeArt.Field()
