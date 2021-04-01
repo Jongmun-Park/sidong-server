@@ -125,6 +125,7 @@ class Art(models.Model):
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     images = ArrayField(models.PositiveIntegerField(), default=list)
+    like_count = models.PositiveIntegerField(default=0)
 
     @property
     def representative_image_url(self):

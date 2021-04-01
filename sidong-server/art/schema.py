@@ -384,6 +384,8 @@ class LikeArt(Mutation):
 
         art = Art.objects.get(id=art_id)
         Like.objects.create(user=user, art=art)
+        art.like_count += 1
+        art.save()
 
         return LikeArt(success=True)
 
@@ -399,8 +401,14 @@ class CancelLikeArt(Mutation):
         if user.is_anonymous:
             return CancelLikeArt(success=False)
 
-        like = Like.objects.filter(user=user, art_id=art_id)
+        art = Art.objects.get(id=art_id)
+        like = Like.objects.filter(user=user, art=art)
         like.delete()
+
+        if art.like_count > 0:
+            art.like_count += -1
+            art.save()
+
         return CancelLikeArt(success=True)
 
 
