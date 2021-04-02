@@ -100,6 +100,7 @@ class Query(ObjectType):
         if not like_instances:
             return None
 
+        like_filter = {}
         if last_like_id:
             like_filter = {'id__lt': last_like_id}
 

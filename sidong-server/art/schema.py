@@ -199,6 +199,7 @@ class Query(ObjectType):
         if not arts:
             return None
 
+        arts_filter = {}
         if last_art_id:
             arts_filter = {'id__lt': last_art_id}
 
@@ -224,6 +225,7 @@ class Query(ObjectType):
         if not like_instances:
             return None
 
+        like_filter = {}
         if last_like_id:
             like_filter = {'id__lt': last_like_id}
 
