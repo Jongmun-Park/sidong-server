@@ -73,6 +73,7 @@ class Artist(models.Model):
     residence = models.PositiveIntegerField(
         choices=CHOICES_OF_RESIDENCE, default=SEOUL)
     website = models.URLField(null=True, max_length=128)
+    like_count = models.PositiveIntegerField(default=0)
 
 
 class Like(models.Model):

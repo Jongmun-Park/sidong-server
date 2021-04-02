@@ -397,7 +397,7 @@ class CancelLikeArt(Mutation):
         like.delete()
 
         if art.like_count > 0:
-            art.like_count += -1
+            art.like_count -= 1
             art.save()
 
         return CancelLikeArt(success=True)

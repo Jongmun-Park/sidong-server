@@ -48,8 +48,9 @@ class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
     artist = Field(ArtistType, artist_id=ID())
-    artists = List(ArtistType, last_artist_id=ID(), page_size=Int(),
-                   category=String(), residence=String())
+    artists = List(ArtistType, page=Int(), page_size=Int(),
+                   category=String(), residence=String(),
+                   ordering_priority=List(String))
     user_liking_artists = Field(ArtistLikeType, user_id=ID(required=True),
                                 last_like_id=ID())
 
@@ -69,11 +70,10 @@ class Query(ObjectType):
     def resolve_artist(self, info, artist_id):
         return Artist.objects.get(id=artist_id)
 
-    def resolve_artists(self, info, last_artist_id=None, page_size=20,
-                        category=None, residence=None):
+    def resolve_artists(self, info, page=0, page_size=20, category=None,
+                        residence=None, ordering_priority=None):
 
         artists_filter = {}
-        id_filter = {}
 
         if category:  # 필터 적용
             if category != 'all':
@@ -82,15 +82,16 @@ class Query(ObjectType):
                 artists_filter['residence'] = residence
 
         artists = Artist.objects.filter(
-            is_approved=True, **artists_filter).order_by('-id')
+            is_approved=True, **artists_filter)
 
         if not artists:
             return None
 
-        if last_artist_id:
-            id_filter['id__lt'] = last_artist_id
+        if ordering_priority is None:
+            ordering_priority = ['-id']
 
-        return artists.filter(**id_filter)[:page_size]
+        return artists.order_by(
+            *ordering_priority)[page*page_size:(page + 1)*page_size]
 
     def resolve_user_liking_artists(self, info, user_id, last_like_id=None):
         like_instances = ArtistLike.objects.filter(
@@ -195,6 +196,8 @@ class LikeArtist(Mutation):
 
         artist = Artist.objects.get(id=artist_id)
         ArtistLike.objects.create(user=user, artist=artist)
+        artist.like_count += 1
+        artist.save()
 
         return LikeArtist(success=True)
 
@@ -210,8 +213,14 @@ class CancelLikeArtist(Mutation):
         if user.is_anonymous:
             return CancelLikeArtist(success=False)
 
-        like = ArtistLike.objects.filter(user=user, artist_id=artist_id)
+        artist = Artist.objects.get(id=artist_id)
+        like = ArtistLike.objects.filter(user=user, artist=artist)
         like.delete()
+
+        if artist.like_count > 0:
+            artist.like_count -= 1
+            artist.save()
+
         return CancelLikeArtist(success=True)
 
 
