@@ -106,11 +106,11 @@ class ArtSizeInput(InputObjectType):
 class Query(ObjectType):
     art = Field(ArtType, art_id=ID())
     art_options = Field(ArtOptions, medium_id=ID())
-    arts = List(ArtType, last_art_id=ID(),
+    arts = List(ArtType, page=Int(),
                 page_size=Int(), sale_status=Argument(SaleStatusInput),
                 orientation=Argument(OrientationInput), size=Argument(ArtSizeInput),
                 price=List(Int), medium=String(), style=String(),
-                technique=String(), theme=String())
+                technique=String(), theme=String(), ordering_priority=List(String))
     arts_by_artist = List(ArtType, artist_id=ID(), last_art_id=ID())
     current_user_arts_offset_based = Field(
         ArtConnection, page=Int(), page_size=Int())
@@ -134,12 +134,12 @@ class Query(ObjectType):
             techniques=techniques,
         )
 
-    def resolve_arts(self, info, last_art_id=None, page_size=20,
+    def resolve_arts(self, info, page=0, page_size=20,
                      sale_status=None, size=None, orientation=None, price=None,
-                     medium=None, theme=None, style=None, technique=None):
+                     medium=None, theme=None, style=None, technique=None,
+                     ordering_priority=None):
 
         arts_filter = {}
-        id_filter = {}
 
         if sale_status:     # 필터 적용
             sale_status_list = []
@@ -183,33 +183,26 @@ class Query(ObjectType):
             arts_filter['size__in'] = size_list
             arts_filter['price__range'] = price
 
-        if arts_filter:
-            arts = Art.objects.filter(**arts_filter)
-        else:
-            arts = Art.objects.all()
+        arts = Art.objects.filter(**arts_filter)
 
         if not arts:
             return None
 
-        if last_art_id is None:
-            id_filter['id__lte'] = arts.last().id
-        else:
-            id_filter['id__lt'] = last_art_id
+        if ordering_priority is None:
+            ordering_priority = ['-id']
 
-        return arts.filter(**id_filter).order_by('-id')[:page_size]
+        return arts.order_by(*ordering_priority)[page*page_size:(page + 1)*page_size]
 
     def resolve_arts_by_artist(self, info, artist_id, last_art_id=None):
-        arts_filter = {'id__lt': last_art_id}
-        arts = Art.objects.filter(artist_id=artist_id)
+        arts = Art.objects.filter(artist_id=artist_id).order_by('-id')
 
         if not arts:
             return None
 
-        if last_art_id is None:
-            last_art_id = arts.last().id
-            arts_filter = {'id__lte': last_art_id}
+        if last_art_id:
+            arts_filter = {'id__lt': last_art_id}
 
-        return arts.filter(**arts_filter).order_by('-id')[:20]
+        return arts.filter(**arts_filter)[:20]
 
     def resolve_current_user_arts_offset_based(self, info, page=0, page_size=10):
         user = info.context.user
@@ -225,19 +218,17 @@ class Query(ObjectType):
         }
 
     def resolve_user_liking_arts(self, info, user_id, last_like_id=None):
-        like_filter = {'id__lt': last_like_id}
         like_instances = Like.objects.filter(
-            user=User.objects.get(id=user_id))
+            user=User.objects.get(id=user_id)).order_by('-id')
 
         if not like_instances:
             return None
 
-        if last_like_id is None:
-            last_like_id = like_instances.last().id
-            like_filter = {'id__lte': last_like_id}
+        if last_like_id:
+            like_filter = {'id__lt': last_like_id}
 
         like_instances = like_instances.filter(
-            **like_filter).order_by('-id')[:20]
+            **like_filter)[:20]
 
         return {
             'id': user_id,
@@ -295,7 +286,7 @@ class CreateArt(Mutation):
             medium=medium,
             name=name,
             orientation=orientation,
-            price=price,
+            price=price if price else 0,
             sale_status=sale_status,
             style=Style.objects.get(id=style),
             technique=Technique.objects.get(id=technique),

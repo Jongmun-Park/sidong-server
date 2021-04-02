@@ -81,38 +81,29 @@ class Query(ObjectType):
             if residence != 'all':
                 artists_filter['residence'] = residence
 
-        if artists_filter:
-            artists = Artist.objects.filter(**artists_filter)
-        else:
-            artists = Artist.objects.all()
+        artists = Artist.objects.filter(
+            is_approved=True, **artists_filter).order_by('-id')
 
         if not artists:
             return None
 
-        if last_artist_id is None:
-            id_filter['id__lte'] = artists.last().id
-        else:
+        if last_artist_id:
             id_filter['id__lt'] = last_artist_id
 
-        return artists.filter(
-            is_approved=True,
-            **id_filter,
-        ).order_by('-id')[:page_size]
+        return artists.filter(**id_filter)[:page_size]
 
     def resolve_user_liking_artists(self, info, user_id, last_like_id=None):
-        like_filter = {'id__lt': last_like_id}
         like_instances = ArtistLike.objects.filter(
-            user=User.objects.get(id=user_id))
+            user=User.objects.get(id=user_id)).order_by('-id')
 
         if not like_instances:
             return None
 
-        if last_like_id is None:
-            last_like_id = like_instances.last().id
-            like_filter = {'id__lte': last_like_id}
+        if last_like_id:
+            like_filter = {'id__lt': last_like_id}
 
         like_instances = like_instances.filter(
-            **like_filter).order_by('-id')[:20]
+            **like_filter)[:20]
 
         return {
             'id': user_id,
