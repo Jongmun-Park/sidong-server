@@ -58,7 +58,7 @@ class Artist(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='artist')
+        User, null=True, on_delete=models.SET_NULL, related_name='artist')
     is_approved = models.BooleanField(default=False)
     artist_name = models.CharField(max_length=32)
     real_name = models.CharField(max_length=32)
@@ -90,3 +90,49 @@ class Like(models.Model):
                 fields=['user', 'artist'], name='unique_like_artist'
             )
         ]
+
+
+class UserInfo(models.Model):
+    name = models.CharField(max_length=8)
+    phone = PhoneNumberField()
+    address = models.CharField(max_length=256)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Order(models.Model):
+    from art.models import Art
+
+    WAIT = 1
+    FAIL = 2
+    SUCCESS = 3
+    PREPARE_DELIVERY = 4
+    ON_DELIVERY = 5
+    DELIVERY_COMPLETED = 6
+    REFUND = 7
+    REFUND_COMPLETED = 8
+    COMPLETED = 9
+
+    STATUS_CHOICES = (
+        (WAIT, '대기'),
+        (FAIL, '실패'),
+        (SUCCESS, '성공'),
+        (PREPARE_DELIVERY, '배송 준비중'),
+        (ON_DELIVERY, '배송 중'),
+        (DELIVERY_COMPLETED, '배송 완료'),
+        (REFUND, '환불'),
+        (REFUND_COMPLETED, '환불 완료'),
+        (COMPLETED, '구매 확정'),
+    )
+
+    userinfo = models.ForeignKey(
+        UserInfo, null=True, on_delete=models.SET_NULL)
+    art_name = models.CharField(max_length=128, blank=False)
+    price = models.PositiveIntegerField()
+    status = models.PositiveIntegerField(
+        choices=STATUS_CHOICES, default=WAIT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    art = models.ForeignKey(Art, null=True, on_delete=models.SET_NULL)
+    artist = models.ForeignKey(Artist, null=True, on_delete=models.SET_NULL)
