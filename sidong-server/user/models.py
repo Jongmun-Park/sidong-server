@@ -96,8 +96,7 @@ class UserInfo(models.Model):
     name = models.CharField(max_length=8)
     phone = PhoneNumberField()
     address = models.CharField(max_length=256)
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="userinfo")
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -129,6 +128,9 @@ class Order(models.Model):
 
     userinfo = models.ForeignKey(
         UserInfo, null=True, on_delete=models.SET_NULL)
+    recipient_name = models.CharField(max_length=8)
+    recipient_phone = PhoneNumberField()
+    recipient_address = models.CharField(max_length=256)
     art_name = models.CharField(max_length=128, blank=False)
     price = models.PositiveIntegerField()
     status = models.PositiveIntegerField(
