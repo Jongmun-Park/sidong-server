@@ -5,8 +5,8 @@ from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, \
     Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
-from user.models import Artist, Like as ArtistLike
-from art.models import Like as ArtLike
+from user.models import Artist, UserInfo, Order, Like as ArtistLike
+from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 
 
@@ -36,6 +36,16 @@ class ArtistType(DjangoObjectType):
         if user.is_anonymous:
             return False
         return ArtistLike.objects.filter(user=user, artist_id=self.id).exists()
+
+
+class UserInfoType(DjangoObjectType):
+    class Meta:
+        model = UserInfo
+
+
+class OrderType(DjangoObjectType):
+    class Meta:
+        model = Order
 
 
 class ArtistLikeType(ObjectType):
@@ -225,8 +235,53 @@ class CancelLikeArtist(Mutation):
         return CancelLikeArtist(success=True)
 
 
+class CreateOrder(Mutation):
+    class Arguments:
+        art_id = ID(required=True)
+        checked_save = Boolean(required=True)
+        address = String(required=True)
+        name = String(required=True)
+        phone = String(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    @transaction.atomic
+    def mutate(self, info, art_id, checked_save, address, name, phone):
+        user = info.context.user
+        if user.is_anonymous:
+            return CreateOrder(success=False, msg="로그인이 필요합니다.")
+
+        art = Art.objects.get(id=art_id)
+        userinfo, _ = UserInfo.objects.get_or_create(
+            user=user,
+            defaults={
+                'name': name,
+                'phone': phone,
+                'address': address,
+            },
+        )
+
+        if checked_save:
+            userinfo.name = name
+            userinfo.phone = phone
+            userinfo.address = address
+            userinfo.save()
+
+        Order.objects.create(
+            userinfo=userinfo,
+            art_name=art.name,
+            price=art.price,
+            art=art,
+            artist=art.artist,
+        )
+
+        return CreateOrder(success=True)
+
+
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     create_artist = CreateArtist.Field()
     like_artist = LikeArtist.Field()
     cancel_like_artist = CancelLikeArtist.Field()
+    create_order = CreateOrder.Field()
