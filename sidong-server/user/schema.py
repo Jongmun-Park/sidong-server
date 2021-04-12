@@ -10,18 +10,27 @@ from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 
 
+class UserInfoType(DjangoObjectType):
+    class Meta:
+        model = UserInfo
+
+
 class UserType(DjangoObjectType):
     class Meta:
         model = User
 
     liking_arts_count = Int()
     liking_artists_count = Int()
+    last_userinfo = Field(UserInfoType)
 
     def resolve_liking_arts_count(self, info):
         return ArtLike.objects.filter(user_id=self.id).count()
 
     def resolve_liking_artists_count(self, info):
         return ArtistLike.objects.filter(user_id=self.id).count()
+
+    def resolve_last_userinfo(self, info):
+        return UserInfo.objects.filter(user_id=self.id).last()
 
 
 class ArtistType(DjangoObjectType):
@@ -38,11 +47,6 @@ class ArtistType(DjangoObjectType):
         return ArtistLike.objects.filter(user=user, artist_id=self.id).exists()
 
 
-class UserInfoType(DjangoObjectType):
-    class Meta:
-        model = UserInfo
-
-
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
@@ -54,6 +58,11 @@ class ArtistLikeType(ObjectType):
     artists = List(ArtistType)
 
 
+class OrderConnection(ObjectType):
+    orders = List(OrderType)
+    total_count = Int()
+
+
 class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
@@ -63,6 +72,7 @@ class Query(ObjectType):
                    ordering_priority=List(String))
     user_liking_artists = Field(ArtistLikeType, user_id=ID(required=True),
                                 last_like_id=ID())
+    orders = Field(OrderConnection, page=Int(), page_size=Int())
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -121,6 +131,18 @@ class Query(ObjectType):
             'id': user_id,
             'last_like_id': like_instances[len(like_instances) - 1].id if like_instances else None,
             'artists': [like.artist for like in like_instances],
+        }
+
+    def resolve_orders(self, info, page=0, page_size=10):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+
+        orders = Order.objects.filter(userinfo__user=user)
+
+        return {
+            'orders': orders.order_by('-id')[page*page_size:(page + 1)*page_size],
+            'total_count': orders.count(),
         }
 
 
@@ -263,10 +285,12 @@ class CreateOrder(Mutation):
         )
 
         if checked_save:
-            userinfo.name = name
-            userinfo.phone = phone
-            userinfo.address = address
-            userinfo.save()
+            userinfo = UserInfo.objects.create(
+                user=user,
+                name=name,
+                phone=phone,
+                address=address,
+            )
 
         Order.objects.create(
             userinfo=userinfo,

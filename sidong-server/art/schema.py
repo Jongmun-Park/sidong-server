@@ -210,8 +210,7 @@ class Query(ObjectType):
         if user.is_anonymous:
             return None
 
-        arts = Art.objects.filter(
-            artist=Artist.objects.get(user=user))
+        arts = Art.objects.filter(artist__user=user)
 
         return {
             'arts': arts.order_by('-id')[page*page_size:(page + 1)*page_size],

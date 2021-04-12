@@ -96,7 +96,8 @@ class UserInfo(models.Model):
     name = models.CharField(max_length=8)
     phone = PhoneNumberField()
     address = models.CharField(max_length=256)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="userinfo")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
