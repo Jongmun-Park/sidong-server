@@ -260,22 +260,25 @@ class CancelLikeArtist(Mutation):
 class CreateOrder(Mutation):
     class Arguments:
         art_id = ID(required=True)
-        checked_save = Boolean(required=True)
         address = String(required=True)
         name = String(required=True)
         phone = String(required=True)
+        recipient_address = String(required=True)
+        recipient_name = String(required=True)
+        recipient_phone = String(required=True)
 
     success = Boolean()
     msg = String()
 
     @transaction.atomic
-    def mutate(self, info, art_id, checked_save, address, name, phone):
+    def mutate(self, info, art_id, recipient_address, address,
+               recipient_name, name, recipient_phone, phone):
         user = info.context.user
         if user.is_anonymous:
             return CreateOrder(success=False, msg="로그인이 필요합니다.")
 
         art = Art.objects.get(id=art_id)
-        userinfo, _ = UserInfo.objects.get_or_create(
+        userinfo, _ = UserInfo.objects.update_or_create(
             user=user,
             defaults={
                 'name': name,
@@ -284,20 +287,15 @@ class CreateOrder(Mutation):
             },
         )
 
-        if checked_save:
-            userinfo = UserInfo.objects.create(
-                user=user,
-                name=name,
-                phone=phone,
-                address=address,
-            )
-
         Order.objects.create(
             userinfo=userinfo,
             art_name=art.name,
             price=art.price,
             art=art,
             artist=art.artist,
+            recipient_address=recipient_address,
+            recipient_name=recipient_name,
+            recipient_phone=recipient_phone,
         )
 
         return CreateOrder(success=True)
