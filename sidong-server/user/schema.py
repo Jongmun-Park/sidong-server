@@ -8,6 +8,7 @@ from graphene_django.types import DjangoObjectType
 from user.models import Artist, UserInfo, Order, Like as ArtistLike
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
+from django.utils import timezone
 
 
 class UserInfoType(DjangoObjectType):
@@ -50,6 +51,10 @@ class ArtistType(DjangoObjectType):
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
+        convert_choices_to_enum = False
+
+    def resolve_created_at(self, info):
+        return timezone.localdate(self.created_at)
 
 
 class ArtistLikeType(ObjectType):
@@ -66,7 +71,8 @@ class OrderConnection(ObjectType):
 class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
-    artist = Field(ArtistType, artist_id=ID())
+    artist = Field(ArtistType, artist_id=ID(required=True))
+    order = Field(OrderType, order_id=ID(required=True))
     artists = List(ArtistType, page=Int(), page_size=Int(),
                    category=String(), residence=String(),
                    ordering_priority=List(String))
@@ -89,6 +95,12 @@ class Query(ObjectType):
 
     def resolve_artist(self, info, artist_id):
         return Artist.objects.get(id=artist_id)
+
+    def resolve_order(self, info, order_id):
+        order = Order.objects.get(id=order_id)
+        if order.userinfo.user.id != info.context.user.id:
+            return None
+        return order
 
     def resolve_artists(self, info, page=0, page_size=20, category=None,
                         residence=None, ordering_priority=None):
@@ -301,9 +313,27 @@ class CreateOrder(Mutation):
         return CreateOrder(success=True)
 
 
+class CancelOrder(Mutation):
+    class Arguments:
+        order_id = ID(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    def mutate(self, info, order_id):
+        order = Order.objects.filter(id=order_id)
+
+        if info.context.user.id != order.get().userinfo.user.id:
+            return CancelOrder(success=False, msg="주문을 취소할 권한이 없습니다.")
+
+        order.delete()
+        return CancelOrder(success=True)
+
+
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     create_artist = CreateArtist.Field()
     like_artist = LikeArtist.Field()
     cancel_like_artist = CancelLikeArtist.Field()
     create_order = CreateOrder.Field()
+    cancel_order = CancelOrder.Field()
