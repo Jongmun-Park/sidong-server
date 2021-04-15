@@ -79,6 +79,7 @@ class Query(ObjectType):
     user_liking_artists = Field(ArtistLikeType, user_id=ID(required=True),
                                 last_like_id=ID())
     orders = Field(OrderConnection, page=Int(), page_size=Int())
+    sales = Field(OrderConnection, page=Int(), page_size=Int())
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -98,8 +99,12 @@ class Query(ObjectType):
 
     def resolve_order(self, info, order_id):
         order = Order.objects.get(id=order_id)
-        if order.userinfo.user.id != info.context.user.id:
-            return None
+        current_user_id = info.context.user.id
+
+        if order.userinfo.user.id != current_user_id:
+            if order.artist.user.id != current_user_id:
+                return None
+
         return order
 
     def resolve_artists(self, info, page=0, page_size=20, category=None,
@@ -155,6 +160,19 @@ class Query(ObjectType):
         return {
             'orders': orders.order_by('-id')[page*page_size:(page + 1)*page_size],
             'total_count': orders.count(),
+        }
+
+    def resolve_sales(self, info, page=0, page_size=10):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+
+        artist = Artist.objects.get(user=user)
+        sales = Order.objects.filter(artist=artist)
+
+        return {
+            'orders': sales.order_by('-id')[page*page_size:(page + 1)*page_size],
+            'total_count': sales.count(),
         }
 
 
@@ -309,7 +327,9 @@ class CreateOrder(Mutation):
             recipient_name=recipient_name,
             recipient_phone=recipient_phone,
         )
-
+        # SMS 전송
+        # 주문/결제 정보 메세지
+        # TO: 주문자, 작가
         return CreateOrder(success=True)
 
 
@@ -331,6 +351,9 @@ class CancelOrder(Mutation):
 
         order.status = Order.CANCEL
         order.save()
+        # SMS 전송
+        # 주문 취소 안내 메세지
+        # TO: 작가
         return CancelOrder(success=True)
 
 
