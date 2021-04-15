@@ -104,6 +104,7 @@ class UserInfo(models.Model):
 class Order(models.Model):
     from art.models import Art
 
+    CANCEL = 0
     WAIT = 1
     FAIL = 2
     SUCCESS = 3
@@ -115,6 +116,7 @@ class Order(models.Model):
     COMPLETED = 9
 
     STATUS_CHOICES = (
+        (CANCEL, '취소'),
         (WAIT, '대기'),
         (FAIL, '실패'),
         (SUCCESS, '성공'),
@@ -129,7 +131,7 @@ class Order(models.Model):
     userinfo = models.ForeignKey(
         UserInfo, null=True, on_delete=models.SET_NULL)
     recipient_name = models.CharField(max_length=8)
-    recipient_phone = PhoneNumberField()
+    recipient_phone = PhoneNumberField(max_length=16)
     recipient_address = models.CharField(max_length=256)
     art_name = models.CharField(max_length=128, blank=False)
     price = models.PositiveIntegerField()

@@ -321,12 +321,16 @@ class CancelOrder(Mutation):
     msg = String()
 
     def mutate(self, info, order_id):
-        order = Order.objects.filter(id=order_id)
+        order = Order.objects.get(id=order_id)
 
-        if info.context.user.id != order.get().userinfo.user.id:
+        if info.context.user.id != order.userinfo.user.id:
             return CancelOrder(success=False, msg="주문을 취소할 권한이 없습니다.")
 
-        order.delete()
+        if order.status == Order.CANCEL:
+            return CancelOrder(success=False, msg="이미 취소된 주문입니다.")
+
+        order.status = Order.CANCEL
+        order.save()
         return CancelOrder(success=True)
 
 
