@@ -357,6 +357,37 @@ class CancelOrder(Mutation):
         return CancelOrder(success=True)
 
 
+class UpdateOrder(Mutation):
+    class Arguments:
+        order_id = ID(required=True)
+        status = ID(required=True)
+        delivery_company = String()
+        delivery_number = String()
+
+    success = Boolean()
+    msg = String()
+
+    def mutate(self, info, order_id, delivery_company, delivery_number, status):
+        order = Order.objects.get(id=order_id)
+
+        if info.context.user.id != order.artist.user.id:
+            return UpdateOrder(success=False, msg="주문을 수정할 권한이 없습니다.")
+
+        if delivery_company and delivery_number:
+            order.delivery_data = {
+                'delivery_company': delivery_company,
+                'delivery_number': delivery_number,
+            }
+
+        # SMS 전송
+        # 상태 변경 안내
+        # TO: 주문자
+        order.status = status
+        order.save()
+
+        return UpdateOrder(success=True)
+
+
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     create_artist = CreateArtist.Field()
@@ -364,3 +395,4 @@ class Mutation(ObjectType):
     cancel_like_artist = CancelLikeArtist.Field()
     create_order = CreateOrder.Field()
     cancel_order = CancelOrder.Field()
+    update_order = UpdateOrder.Field()

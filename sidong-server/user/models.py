@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User
 from phonenumber_field.modelfields import PhoneNumberField
 from file.models import File
@@ -141,3 +142,4 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     art = models.ForeignKey(Art, null=True, on_delete=models.SET_NULL)
     artist = models.ForeignKey(Artist, null=True, on_delete=models.SET_NULL)
+    delivery_data = JSONField(null=True)
