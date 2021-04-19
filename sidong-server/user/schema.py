@@ -53,8 +53,17 @@ class OrderType(DjangoObjectType):
         model = Order
         convert_choices_to_enum = False
 
+    delivery_company = String()
+    delivery_number = String()
+
     def resolve_created_at(self, info):
         return timezone.localdate(self.created_at)
+
+    def resolve_delivery_company(self, info):
+        return self.delivery_data['delivery_company'] if self.delivery_data else None
+
+    def resolve_delivery_number(self, info):
+        return self.delivery_data['delivery_number'] if self.delivery_data else None
 
 
 class ArtistLikeType(ObjectType):
@@ -346,9 +355,6 @@ class CancelOrder(Mutation):
         if info.context.user.id != order.userinfo.user.id:
             return CancelOrder(success=False, msg="주문을 취소할 권한이 없습니다.")
 
-        if order.status == Order.CANCEL:
-            return CancelOrder(success=False, msg="이미 취소된 주문입니다.")
-
         order.status = Order.CANCEL
         order.save()
         # SMS 전송
@@ -357,10 +363,31 @@ class CancelOrder(Mutation):
         return CancelOrder(success=True)
 
 
+class CompleteOrder(Mutation):
+    class Arguments:
+        order_id = ID(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    def mutate(self, info, order_id):
+        order = Order.objects.get(id=order_id)
+
+        if info.context.user.id != order.userinfo.user.id:
+            return CompleteOrder(success=False, msg="구매 완료할 권한이 없습니다.")
+
+        order.status = Order.COMPLETED
+        order.save()
+        # SMS 전송
+        # 구매 완료 안내 메세지
+        # TO: 작가
+        return CompleteOrder(success=True)
+
+
 class UpdateOrder(Mutation):
     class Arguments:
         order_id = ID(required=True)
-        status = ID(required=True)
+        status = Int(required=True)
         delivery_company = String()
         delivery_number = String()
 
@@ -373,11 +400,14 @@ class UpdateOrder(Mutation):
         if info.context.user.id != order.artist.user.id:
             return UpdateOrder(success=False, msg="주문을 수정할 권한이 없습니다.")
 
-        if delivery_company and delivery_number:
-            order.delivery_data = {
-                'delivery_company': delivery_company,
-                'delivery_number': delivery_number,
-            }
+        if status == Order.ON_DELIVERY or status == Order.DELIVERY_COMPLETED:
+            if delivery_company and delivery_number:
+                order.delivery_data = {
+                    'delivery_company': delivery_company,
+                    'delivery_number': delivery_number,
+                }
+            else:
+                return UpdateOrder(success=False, msg="택배 회사명과 송장 번호를 입력해주세요.(필수)")
 
         # SMS 전송
         # 상태 변경 안내
@@ -396,3 +426,4 @@ class Mutation(ObjectType):
     create_order = CreateOrder.Field()
     cancel_order = CancelOrder.Field()
     update_order = UpdateOrder.Field()
+    complete_order = CompleteOrder.Field()
