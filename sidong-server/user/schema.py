@@ -400,6 +400,12 @@ class UpdateOrder(Mutation):
         if info.context.user.id != order.artist.user.id:
             return UpdateOrder(success=False, msg="주문을 수정할 권한이 없습니다.")
 
+        if order.status == Order.CANCEL:
+            return UpdateOrder(success=False, msg="이미 취소된 주문입니다.")
+
+        if order.status <= Order.FAIL:
+            return UpdateOrder(success=False, msg="아직 결제가 왼료되지 않았습니다.")
+
         if status == Order.ON_DELIVERY or status == Order.DELIVERY_COMPLETED:
             if delivery_company and delivery_number:
                 order.delivery_data = {
