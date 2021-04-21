@@ -15,20 +15,19 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "o_#j(+(yd31m5#n9$dgb_^&f)5xiut4x&4f_v=6aml%gj2i0&t"
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY", "o_#j(+(yd31m5#n9$dgb_^&f)5xiut4x&4f_v=6aml%gj2i0&t")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.environ.get("DJANGO_DEBUG", True))
+CSRF_COOKIE_SECURE = bool(os.environ.get("CSRF_COOKIE_SECURE", False))
+SESSION_COOKIE_SECURE = bool(os.environ.get("SESSION_COOKIE_SECURE", False))
+
+AWS_ACCESS_KEY = os.environ.get("SIDONG_AWS_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.environ.get("SIDONG_AWS_SECRET_ACCESS_KEY")
 
 ALLOWED_HOSTS = []
-
-
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -77,17 +76,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "sidong_server.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "sidong",
-        "USER": "sidong",
-        "PASSWORD": "sidongpsql",
-        "HOST": "127.0.0.1",
+        "NAME": os.environ.get("DATABASE_NAME", "sidong"),
+        "USER": os.environ.get("DATABASE_USER", "sidong"),
+        "PASSWORD": os.environ.get("DATABASE_PASSWORD", "sidongpsql"),
+        "HOST": os.environ.get("DATABASE_HOST", "127.0.0.1"),
     }
 }
 
@@ -135,6 +130,3 @@ AUTHENTICATION_BACKENDS = [
 
 PHONENUMBER_DEFAULT_REGION = "KR"
 CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
-
-AWS_ACCESS_KEY = os.environ["SIDONG_AWS_ACCESS_KEY"]
-AWS_SECRET_ACCESS_KEY = os.environ["SIDONG_AWS_SECRET_ACCESS_KEY"]
