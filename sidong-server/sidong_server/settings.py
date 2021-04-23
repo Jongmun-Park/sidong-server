@@ -31,7 +31,7 @@ SESSION_COOKIE_SECURE = bool(os.environ.get("SESSION_COOKIE_SECURE", False))
 AWS_ACCESS_KEY = os.environ.get("SIDONG_AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.environ.get("SIDONG_AWS_SECRET_ACCESS_KEY")
 
-ALLOWED_HOSTS = ["api.jakupteo.com"]
+ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -83,10 +83,10 @@ WSGI_APPLICATION = "sidong_server.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DATABASE_NAME"),
-        "USER": os.environ.get("DATABASE_USER"),
-        "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
-        "HOST": os.environ.get("DATABASE_HOST"),
+        "NAME": os.environ.get("DATABASE_NAME", "sidong"),
+        "USER": os.environ.get("DATABASE_USER", "sidong"),
+        "PASSWORD": os.environ.get("DATABASE_PASSWORD", "sidongpsql"),
+        "HOST": os.environ.get("DATABASE_HOST", "127.0.0.1"),
     }
 }
 
