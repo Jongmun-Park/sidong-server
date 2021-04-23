@@ -77,6 +77,13 @@ class OrderConnection(ObjectType):
     total_count = Int()
 
 
+class TestConnection(ObjectType):
+    debug = Boolean()
+    debug_str = String()
+    csrf_secure = Boolean()
+    session_secure = Boolean()
+
+
 class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
@@ -89,6 +96,17 @@ class Query(ObjectType):
                                 last_like_id=ID())
     orders = Field(OrderConnection, page=Int(), page_size=Int())
     sales = Field(OrderConnection, page=Int(), page_size=Int())
+    test = Field(TestConnection)
+
+    def resolve_test(self, info):
+        from django.conf import settings
+        import os
+        return {
+            'debug': settings.DEBUG,
+            'debug_str': os.environ.get("DJANGO_DEBUG"),
+            'csrf_secure': settings.CSRF_COOKIE_SECURE,
+            'session_secure': settings.SESSION_COOKIE_SECURE,
+        }
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
