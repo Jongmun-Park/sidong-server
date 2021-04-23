@@ -31,7 +31,7 @@ SESSION_COOKIE_SECURE = bool(os.environ.get("SESSION_COOKIE_SECURE", False))
 AWS_ACCESS_KEY = os.environ.get("SIDONG_AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.environ.get("SIDONG_AWS_SECRET_ACCESS_KEY")
 
-ALLOWED_HOSTS = ["3.35.22.185", "localhost"]
+ALLOWED_HOSTS = ["api.jakupteo.com"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
