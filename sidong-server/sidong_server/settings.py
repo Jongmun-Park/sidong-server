@@ -127,4 +127,4 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 PHONENUMBER_DEFAULT_REGION = "KR"
-CORS_ORIGIN_WHITELIST = ["http://localhost:3000"]
+CORS_ORIGIN_WHITELIST = ["http://localhost:3000", "https://www.jakupteo.com"]
