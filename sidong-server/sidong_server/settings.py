@@ -127,8 +127,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 PHONENUMBER_DEFAULT_REGION = "KR"
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://\w+\.jakupteo\.com$",
+]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://www.jakupteo.com",
-    "http://www.jakupteo.com",
 ]
