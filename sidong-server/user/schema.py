@@ -317,6 +317,10 @@ class CreateOrder(Mutation):
             return CreateOrder(success=False, msg="로그인이 필요합니다.")
 
         art = Art.objects.get(id=art_id)
+
+        if art.sale_status != Art.ON_SALE:
+            return CreateOrder(success=False, msg="판매 중인 작품이 아닙니다.")
+
         userinfo, _ = UserInfo.objects.update_or_create(
             user=user,
             defaults={
@@ -336,6 +340,9 @@ class CreateOrder(Mutation):
             recipient_name=recipient_name,
             recipient_phone=recipient_phone,
         )
+
+        art.sale_status = Art.SOLD_OUT
+        art.save()
         # SMS 전송
         # 주문/결제 정보 메세지
         # TO: 주문자, 작가
@@ -349,6 +356,7 @@ class CancelOrder(Mutation):
     success = Boolean()
     msg = String()
 
+    @transaction.atomic
     def mutate(self, info, order_id):
         order = Order.objects.get(id=order_id)
 
@@ -357,6 +365,9 @@ class CancelOrder(Mutation):
 
         order.status = Order.CANCEL
         order.save()
+
+        order.art.sale_status = Art.ON_SALE
+        order.art.save()
         # SMS 전송
         # 주문 취소 안내 메세지
         # TO: 작가
