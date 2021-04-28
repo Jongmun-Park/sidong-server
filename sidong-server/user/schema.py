@@ -92,9 +92,17 @@ class Query(ObjectType):
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
-            return User.objects.get(id=id)
+            if User.objects.filter(id=id).exists():
+                return User.objects.get(id=id)
+            else:
+                return None
+
         if email is not None:
-            return User.objects.get(username=email)
+            if User.objects.filter(username=email).exists():
+                return User.objects.get(username=email)
+            else:
+                return None
+
         return None
 
     def resolve_current_user(self, info):
@@ -435,6 +443,20 @@ class UpdateOrder(Mutation):
         return UpdateOrder(success=True)
 
 
+class CheckUserEmail(Mutation):
+    class Arguments:
+        email = String(required=True)
+
+    result = Boolean()
+
+    def mutate(self, info, email):
+        try:
+            User.objects.get(username=email)
+            return CheckUserEmail(result=True)
+        except User.DoesNotExist:
+            return CheckUserEmail(result=False)
+
+
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     create_artist = CreateArtist.Field()
@@ -444,3 +466,4 @@ class Mutation(ObjectType):
     cancel_order = CancelOrder.Field()
     update_order = UpdateOrder.Field()
     complete_order = CompleteOrder.Field()
+    check_user_email = CheckUserEmail.Field()
