@@ -228,6 +228,9 @@ class CreateArtist(Mutation):
                phone, description, category, residence, thumbnail, representative_work):
         current_user = info.context.user
 
+        if Artist.objects.filter(user=current_user).exists():
+            return CreateArtist(success=False, msg="이미 작가 신청하셨습니다.\n관리자의 승인이 필요합니다.")
+
         validate_thumbnail = validate_file(thumbnail[0], File.BUCKET_ASSETS)
         if validate_thumbnail['status'] == 'fail':
             return CreateArtist(success=False, msg=validate_thumbnail['msg'])
