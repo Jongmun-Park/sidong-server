@@ -6,6 +6,7 @@ from graphene import Mutation, ObjectType, String, Boolean, \
     Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
 from user.models import Artist, UserInfo, Order, Like as ArtistLike
+from user.func import validate_payment_by_imp
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 from django.utils import timezone
@@ -316,13 +317,14 @@ class CreateOrder(Mutation):
         recipient_address = String(required=True)
         recipient_name = String(required=True)
         recipient_phone = String(required=True)
+        imp_uid = String(required=True)
 
     success = Boolean()
     msg = String()
 
     @transaction.atomic
     def mutate(self, info, art_id, recipient_address, address,
-               recipient_name, name, recipient_phone, phone):
+               recipient_name, name, recipient_phone, phone, imp_uid):
         user = info.context.user
         if user.is_anonymous:
             return CreateOrder(success=False, msg="로그인이 필요합니다.")
@@ -341,6 +343,10 @@ class CreateOrder(Mutation):
             },
         )
 
+        payment_validation = validate_payment_by_imp(imp_uid, art.price)
+        if payment_validation is not True:
+            return CreateOrder(success=False, msg=payment_validation)
+
         Order.objects.create(
             userinfo=userinfo,
             art_name=art.name,
@@ -354,7 +360,7 @@ class CreateOrder(Mutation):
 
         art.sale_status = Art.SOLD_OUT
         art.save()
-        # SMS 전송
+        # TODO: SMS 전송
         # 주문/결제 정보 메세지
         # TO: 주문자, 작가
         return CreateOrder(success=True)
@@ -379,7 +385,7 @@ class CancelOrder(Mutation):
 
         order.art.sale_status = Art.ON_SALE
         order.art.save()
-        # SMS 전송
+        # TODO: SMS 전송
         # 주문 취소 안내 메세지
         # TO: 작가
         return CancelOrder(success=True)
@@ -400,7 +406,7 @@ class CompleteOrder(Mutation):
 
         order.status = Order.COMPLETED
         order.save()
-        # SMS 전송
+        # TODO: SMS 전송
         # 구매 완료 안내 메세지
         # TO: 작가
         return CompleteOrder(success=True)
@@ -437,7 +443,7 @@ class UpdateOrder(Mutation):
             else:
                 return UpdateOrder(success=False, msg="택배 회사명과 송장 번호를 입력해주세요.(필수)")
 
-        # SMS 전송
+        # TODO: SMS 전송
         # 상태 변경 안내
         # TO: 주문자
         order.status = status

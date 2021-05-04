@@ -31,6 +31,9 @@ SESSION_COOKIE_SECURE = bool(os.environ.get("SESSION_COOKIE_SECURE", False))
 AWS_ACCESS_KEY = os.environ.get("SIDONG_AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.environ.get("SIDONG_AWS_SECRET_ACCESS_KEY")
 
+IMP_ACCESS_KEY = os.environ.get("IMP_ACCESS_KEY")
+IMP_SECRET_ACCESS_KEY = os.environ.get("IMP_SECRET_ACCESS_KEY")
+
 ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 
 INSTALLED_APPS = [
