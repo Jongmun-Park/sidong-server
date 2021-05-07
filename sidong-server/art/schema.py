@@ -85,12 +85,14 @@ class ArtConnection(ObjectType):
 
 
 class SaleStatusInput(InputObjectType):
+    all = InputField(Boolean)
     on_sale = InputField(Boolean)
     sold_out = InputField(Boolean)
     not_for_sale = InputField(Boolean)
 
 
 class OrientationInput(InputObjectType):
+    all = InputField(Boolean)
     landscape = InputField(Boolean)
     portrait = InputField(Boolean)
     square = InputField(Boolean)
@@ -98,6 +100,7 @@ class OrientationInput(InputObjectType):
 
 
 class ArtSizeInput(InputObjectType):
+    all = InputField(Boolean)
     small = InputField(Boolean)
     medium = InputField(Boolean)
     large = InputField(Boolean)
@@ -146,28 +149,34 @@ class Query(ObjectType):
             orientation_list = []
             size_list = []
 
-            if sale_status['on_sale'] is True:
-                sale_status_list.append(Art.ON_SALE)
-            if sale_status['sold_out'] is True:
-                sale_status_list.append(Art.SOLD_OUT)
-            if sale_status['not_for_sale'] is True:
-                sale_status_list.append(Art.NOT_FOR_SALE)
+            if sale_status['all'] is False:
+                if sale_status['on_sale'] is True:
+                    sale_status_list.append(Art.ON_SALE)
+                if sale_status['sold_out'] is True:
+                    sale_status_list.append(Art.SOLD_OUT)
+                if sale_status['not_for_sale'] is True:
+                    sale_status_list.append(Art.NOT_FOR_SALE)
+                arts_filter['sale_status__in'] = sale_status_list
 
-            if orientation['landscape'] is True:
-                orientation_list.append(Art.LANDSCAPE)
-            if orientation['portrait'] is True:
-                orientation_list.append(Art.PORTRAIT)
-            if orientation['square'] is True:
-                orientation_list.append(Art.SQUARE)
-            if orientation['etc'] is True:
-                orientation_list.append(Art.ETC_ORIENTATION)
+            if orientation['all'] is False:
+                if orientation['landscape'] is True:
+                    orientation_list.append(Art.LANDSCAPE)
+                if orientation['portrait'] is True:
+                    orientation_list.append(Art.PORTRAIT)
+                if orientation['square'] is True:
+                    orientation_list.append(Art.SQUARE)
+                if orientation['etc'] is True:
+                    orientation_list.append(Art.ETC_ORIENTATION)
+                arts_filter['orientation__in'] = orientation_list
 
-            if size['small'] is True:
-                size_list.append(Art.SMALL)
-            if size['medium'] is True:
-                size_list.append(Art.MEDIUM)
-            if size['large'] is True:
-                size_list.append(Art.LARGE)
+            if size['all'] is False:
+                if size['small'] is True:
+                    size_list.append(Art.SMALL)
+                if size['medium'] is True:
+                    size_list.append(Art.MEDIUM)
+                if size['large'] is True:
+                    size_list.append(Art.LARGE)
+                arts_filter['size__in'] = size_list
 
             if medium != 'all':
                 arts_filter['medium'] = medium
@@ -178,9 +187,6 @@ class Query(ObjectType):
             if theme != 'all':
                 arts_filter['theme'] = theme
 
-            arts_filter['sale_status__in'] = sale_status_list
-            arts_filter['orientation__in'] = orientation_list
-            arts_filter['size__in'] = size_list
             arts_filter['price__range'] = price
 
         arts = Art.objects.filter(**arts_filter)
