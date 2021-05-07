@@ -446,6 +446,9 @@ class UpdateOrder(Mutation):
         if order.status == Order.CANCEL:
             return UpdateOrder(success=False, msg="이미 취소된 주문입니다.")
 
+        if order.status >= Order.REFUND:
+            return UpdateOrder(success=False, msg="주문 상태를 변경할 수 없는 단계입니다.")
+
         if order.status <= Order.FAIL:
             return UpdateOrder(success=False, msg="아직 결제가 왼료되지 않았습니다.")
 
