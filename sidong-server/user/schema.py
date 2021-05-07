@@ -5,8 +5,8 @@ from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, \
     Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
-from user.models import Artist, UserInfo, Order, Like as ArtistLike
-from user.func import validate_payment_by_imp
+from user.models import Artist, UserInfo, Order, Like as ArtistLike, Payment
+from user.func import validate_payment
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 from django.utils import timezone
@@ -343,11 +343,12 @@ class CreateOrder(Mutation):
             },
         )
 
-        payment_validation = validate_payment_by_imp(imp_uid, art.price)
-        if payment_validation is not True:
-            return CreateOrder(success=False, msg=payment_validation)
+        result_of_payment, msg_or_payment_info = validate_payment(
+            imp_uid, art.price)
+        if result_of_payment is False:
+            return CreateOrder(success=False, msg=msg_or_payment_info)
 
-        Order.objects.create(
+        order = Order.objects.create(
             userinfo=userinfo,
             art_name=art.name,
             price=art.price,
@@ -356,6 +357,20 @@ class CreateOrder(Mutation):
             recipient_address=recipient_address,
             recipient_name=recipient_name,
             recipient_phone=recipient_phone,
+            status=Order.SUCCESS,
+        )
+
+        import datetime
+        import pytz
+
+        Payment.objects.create(
+            transacted_at=datetime.datetime.fromtimestamp(
+                msg_or_payment_info['paid_at'], pytz.timezone('Asia/Seoul')),
+            transaction_id=msg_or_payment_info['imp_uid'],
+            order=order,
+            status=msg_or_payment_info['status'],
+            amount=msg_or_payment_info['amount'],
+            pay_method=msg_or_payment_info['pay_method'],
         )
 
         art.sale_status = Art.SOLD_OUT

@@ -143,3 +143,12 @@ class Order(models.Model):
     art = models.ForeignKey(Art, null=True, on_delete=models.SET_NULL)
     artist = models.ForeignKey(Artist, null=True, on_delete=models.SET_NULL)
     delivery_data = JSONField(null=True)
+
+
+class Payment(models.Model):
+    transacted_at = models.DateTimeField()
+    transaction_id = models.CharField(max_length=128)
+    order = models.ForeignKey(Order, null=True, on_delete=models.SET_NULL)
+    status = models.CharField(max_length=32)
+    amount = models.IntegerField()
+    pay_method = models.CharField(max_length=32)
