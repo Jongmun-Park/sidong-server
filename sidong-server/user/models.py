@@ -130,7 +130,7 @@ class Order(models.Model):
     )
 
     userinfo = models.ForeignKey(
-        UserInfo, null=True, on_delete=models.SET_NULL)
+        UserInfo, null=True, on_delete=models.SET_NULL, related_name="orders")
     recipient_name = models.CharField(max_length=8)
     recipient_phone = PhoneNumberField(max_length=16)
     recipient_address = models.CharField(max_length=256)
@@ -140,15 +140,18 @@ class Order(models.Model):
         choices=STATUS_CHOICES, default=WAIT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    art = models.ForeignKey(Art, null=True, on_delete=models.SET_NULL)
-    artist = models.ForeignKey(Artist, null=True, on_delete=models.SET_NULL)
+    art = models.ForeignKey(
+        Art, null=True, on_delete=models.SET_NULL, related_name="orders")
+    artist = models.ForeignKey(
+        Artist, null=True, on_delete=models.SET_NULL, related_name="orders")
     delivery_data = JSONField(null=True)
 
 
 class Payment(models.Model):
     transacted_at = models.DateTimeField()
     transaction_id = models.CharField(max_length=128)
-    order = models.ForeignKey(Order, null=True, on_delete=models.SET_NULL)
+    order = models.ForeignKey(
+        Order, null=True, on_delete=models.SET_NULL, related_name='payments')
     status = models.CharField(max_length=32)
     amount = models.IntegerField()
     pay_method = models.CharField(max_length=32)

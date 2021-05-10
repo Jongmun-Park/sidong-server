@@ -1,12 +1,13 @@
+import datetime
+import pytz
 from django.contrib.auth.models import User
 from django.db import transaction
-
 from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, \
     Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
 from user.models import Artist, UserInfo, Order, Like as ArtistLike, Payment
-from user.func import validate_payment
+from user.func import validate_payment, cancel_payment
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 from django.utils import timezone
@@ -360,9 +361,6 @@ class CreateOrder(Mutation):
             status=Order.SUCCESS,
         )
 
-        import datetime
-        import pytz
-
         Payment.objects.create(
             transacted_at=datetime.datetime.fromtimestamp(
                 msg_or_payment_info['paid_at'], pytz.timezone('Asia/Seoul')),
@@ -394,6 +392,11 @@ class CancelOrder(Mutation):
 
         if info.context.user.id != order.userinfo.user.id:
             return CancelOrder(success=False, msg="주문을 취소할 권한이 없습니다.")
+
+        result_of_cancel_payment, msg = cancel_payment(
+            order.payments.last().id)
+        if result_of_cancel_payment is False:
+            return CancelOrder(success=False, msg=msg)
 
         order.status = Order.CANCEL
         order.save()

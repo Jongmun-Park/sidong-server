@@ -20,7 +20,8 @@ class File(models.Model):
         max_length=8, choices=CHOICES_OF_BUCKET, default=BUCKET_ASSETS)
     path = models.CharField(max_length=256)
     content_type = models.CharField(max_length=32)
-    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name='files')
 
     @property
     def url(self):
