@@ -1,13 +1,12 @@
-import datetime
-import pytz
 from django.contrib.auth.models import User
 from django.db import transaction
 from graphene_file_upload.scalars import Upload
 from graphene import Mutation, ObjectType, String, Boolean, \
     Field, List, Int, ID
 from graphene_django.types import DjangoObjectType
-from user.models import Artist, UserInfo, Order, Like as ArtistLike, Payment
-from user.func import validate_payment, cancel_payment
+from user.models import Artist, UserInfo, Order, Like as ArtistLike
+from user.func import cancel_payment, create_order, create_payment, \
+    update_or_create_userinfo, validate_payment
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 from django.utils import timezone
@@ -331,45 +330,31 @@ class CreateOrder(Mutation):
             return CreateOrder(success=False, msg="로그인이 필요합니다.")
 
         art = Art.objects.get(id=art_id)
-
         if art.sale_status != Art.ON_SALE:
             return CreateOrder(success=False, msg="판매 중인 작품이 아닙니다.")
 
-        userinfo, _ = UserInfo.objects.update_or_create(
-            user=user,
-            defaults={
-                'name': name,
-                'phone': phone,
-                'address': address,
-            },
-        )
-
         result_of_payment, msg_or_payment_info = validate_payment(
             imp_uid, art.price)
+
         if result_of_payment is False:
             return CreateOrder(success=False, msg=msg_or_payment_info)
 
-        order = Order.objects.create(
-            userinfo=userinfo,
-            art_name=art.name,
-            price=art.price,
-            art=art,
-            artist=art.artist,
-            recipient_address=recipient_address,
-            recipient_name=recipient_name,
-            recipient_phone=recipient_phone,
-            status=Order.SUCCESS,
-        )
+        userinfo = update_or_create_userinfo(user, name, phone, address)
 
-        Payment.objects.create(
-            transacted_at=datetime.datetime.fromtimestamp(
-                msg_or_payment_info['paid_at'], pytz.timezone('Asia/Seoul')),
-            transaction_id=msg_or_payment_info['imp_uid'],
-            order=order,
-            status=msg_or_payment_info['status'],
-            amount=msg_or_payment_info['amount'],
-            pay_method=msg_or_payment_info['pay_method'],
-        )
+        result_of_create_order, msg_or_order = create_order(
+            art, userinfo, recipient_address, recipient_name, recipient_phone)
+
+        if result_of_create_order is False:
+            return CreateOrder(success=False, msg=msg_or_order)
+
+        result_of_create_payment, msg = create_payment(
+            msg_or_payment_info, msg_or_order)
+
+        if result_of_create_payment is False:
+            return CreateOrder(success=False, msg=msg)
+
+        msg_or_order.status = Order.SUCCESS
+        msg_or_order.save()
 
         art.sale_status = Art.SOLD_OUT
         art.save()
@@ -395,6 +380,7 @@ class CancelOrder(Mutation):
 
         result_of_cancel_payment, msg = cancel_payment(
             order.payments.last().id)
+
         if result_of_cancel_payment is False:
             return CancelOrder(success=False, msg=msg)
 
