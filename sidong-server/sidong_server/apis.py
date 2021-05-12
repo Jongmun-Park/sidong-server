@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.db import transaction
 from art.models import Art
+from user.models import Order
 from user.func import create_order, create_payment, \
     update_or_create_userinfo, validate_payment
 
