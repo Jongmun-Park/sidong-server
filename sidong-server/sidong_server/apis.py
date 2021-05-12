@@ -18,8 +18,8 @@ def create_order_on_mobile(request):
     imp_success = request.GET.get('imp_success')
     imp_uid = request.GET.get('imp_uid')
 
-    if request.user.is_anonymous:
-        return HttpResponse('<script>alert("로그인 부탁드립니다.")</script>')
+    # if request.user.is_anonymous:
+    #     return HttpResponse('<script>alert("로그인 부탁드립니다.")</script>')
 
     if imp_success is False:
         return HttpResponse('<script>alert("결제에 실패했습니다.\n{0}")</script>'.format(request.GET.get('error_msg')))
