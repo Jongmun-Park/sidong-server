@@ -36,7 +36,7 @@ IMP_SECRET_ACCESS_KEY = os.environ.get("IMP_SECRET_ACCESS_KEY")
 
 ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 
-ADMINS = [('박종문', 'jakupteo@gmail.com')]
+ADMINS = [('작업터', 'jakupteo@gmail.com'), ('박종문', 'momenttraveler@gmail.com')]
 SERVER_EMAIL = 'system@jakupteo.com'
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
