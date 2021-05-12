@@ -40,3 +40,13 @@ def artAutoCreate():
             height=110,
             images=[20, 21],
         )
+
+
+def send_email_test():
+    from django.core.mail import send_mail
+    send_mail(
+        'subject',
+        'message',
+        'jakupteo@gmail.com',
+        ['jakupteo@gmail.com'],
+    )

@@ -39,7 +39,7 @@ def upload_file(file, file_path, bucket):
     bucket += ".storage.jakupsil.co.kr"
     s3_client = boto3.client(
         service_name="s3",
-        aws_access_key_id=settings.AWS_ACCESS_KEY,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         region_name="ap-northeast-2",
     )

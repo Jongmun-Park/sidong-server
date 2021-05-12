@@ -28,7 +28,7 @@ DEBUG = bool(os.environ.get("DJANGO_DEBUG", True))
 CSRF_COOKIE_SECURE = bool(os.environ.get("CSRF_COOKIE_SECURE", False))
 SESSION_COOKIE_SECURE = bool(os.environ.get("SESSION_COOKIE_SECURE", False))
 
-AWS_ACCESS_KEY = os.environ.get("SIDONG_AWS_ACCESS_KEY")
+AWS_ACCESS_KEY_ID = os.environ.get("SIDONG_AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.environ.get("SIDONG_AWS_SECRET_ACCESS_KEY")
 
 IMP_ACCESS_KEY = os.environ.get("IMP_ACCESS_KEY")
@@ -39,11 +39,10 @@ ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 ADMINS = [('박종문', 'jakupteo@gmail.com')]
 SERVER_EMAIL = 'system@jakupteo.com'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_BACKEND = 'django_ses.SESBackend'
+AWS_SES_REGION_NAME = 'ap-northeast-2'
+AWS_SES_REGION_ENDPOINT = 'email.ap-northeast-2.amazonaws.com'
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
