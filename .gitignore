@@ -1,3 +1,6 @@
+# static files
+/sidong-server/static/
+
 # vs-code
 .vscode/
 
