@@ -37,7 +37,7 @@ IMP_SECRET_ACCESS_KEY = os.environ.get("IMP_SECRET_ACCESS_KEY")
 ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 
 ADMINS = [('작업터', 'jakupteo@gmail.com'), ('박종문', 'momenttraveler@gmail.com')]
-SERVER_EMAIL = 'system@jakupteo.com'
+SERVER_EMAIL = 'jakupteo@gmail.com'
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
 AWS_SES_REGION_NAME = 'ap-northeast-2'
