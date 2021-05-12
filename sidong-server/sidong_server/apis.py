@@ -25,7 +25,7 @@ def create_order_on_mobile(request):
     except User.DoesNotExist:
         return HttpResponse('<script>alert("로그인 정보가 없습니다.")</script>')
 
-    if imp_success is False:
+    if imp_success != "true":
         return HttpResponse('<script>alert("결제에 실패했습니다.\n{0}")</script>'.format(request.GET.get('error_msg')))
 
     art = Art.objects.get(id=art_id)
