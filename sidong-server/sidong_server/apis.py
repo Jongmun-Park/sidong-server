@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.db import transaction
@@ -9,6 +10,7 @@ from user.func import create_order, create_payment, \
 @transaction.atomic
 def create_order_on_mobile(request):
     art_id = request.GET.get('artId')
+    user_id = request.GET.get('userId')
     address = request.GET.get('address')
     name = request.GET.get('name')
     phone = request.GET.get('phone')
@@ -18,8 +20,10 @@ def create_order_on_mobile(request):
     imp_success = request.GET.get('imp_success')
     imp_uid = request.GET.get('imp_uid')
 
-    # if request.user.is_anonymous:
-    #     return HttpResponse('<script>alert("로그인 부탁드립니다.")</script>')
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return HttpResponse('<script>alert("로그인 정보가 없습니다.")</script>')
 
     if imp_success is False:
         return HttpResponse('<script>alert("결제에 실패했습니다.\n{0}")</script>'.format(request.GET.get('error_msg')))
