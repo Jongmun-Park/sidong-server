@@ -6,15 +6,17 @@ from user.models import Artist
 
 PAINTING = 0
 SCULPTURE = 1
-DRAWING = 2
-PRINT = 3
-PAPER = 4
-TEXTILE = 5
-ETC_MEDIUM = 6
+PICTURE = 2
+DRAWING = 3
+PRINT = 4
+PAPER = 5
+TEXTILE = 6
+ETC_MEDIUM = 7
 
 CHOICES_OF_MEDIUM = [
     (PAINTING, '회화'),
     (SCULPTURE, '조각'),
+    (PICTURE, '사진'),
     (DRAWING, '소묘'),
     (PRINT, '판화'),
     (PAPER, '종이'),
