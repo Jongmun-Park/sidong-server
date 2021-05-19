@@ -255,6 +255,7 @@ class CreateArt(Mutation):
         name = String(required=True)
         orientation = ID(required=True)
         price = Int()
+        delivery_fee = Int()
         sale_status = ID(required=True)
         style = ID(required=True)
         technique = ID(required=True)
@@ -266,7 +267,7 @@ class CreateArt(Mutation):
     @transaction.atomic
     def mutate(self, info, art_images, description, width,
                height, is_framed, medium, name, orientation,
-               sale_status, style, technique, theme, price=None):
+               sale_status, style, technique, theme, price=None, delivery_fee=None):
         current_user = info.context.user
 
         for image in art_images:
@@ -294,6 +295,7 @@ class CreateArt(Mutation):
             name=name,
             orientation=orientation,
             price=price if price else 0,
+            delivery_fee=delivery_fee if delivery_fee else 0,
             sale_status=sale_status,
             style=Style.objects.get(id=style),
             technique=Technique.objects.get(id=technique),
@@ -315,6 +317,7 @@ class UpdateArt(Mutation):
         name = String(required=True)
         orientation = ID(required=True)
         price = Int()
+        delivery_fee = Int()
         sale_status = ID(required=True)
         style = ID(required=True)
         technique = ID(required=True)
@@ -325,7 +328,7 @@ class UpdateArt(Mutation):
 
     def mutate(self, info, art_id, art_images, description, width,
                height, is_framed, medium, name, orientation,
-               sale_status, style, technique, theme, price=None):
+               sale_status, style, technique, theme, price=None, delivery_fee=None):
 
         art = Art.objects.filter(id=art_id)
 
@@ -343,6 +346,7 @@ class UpdateArt(Mutation):
             name=name,
             orientation=orientation,
             price=price,
+            delivery_fee=delivery_fee,
             sale_status=sale_status,
             style=Style.objects.get(id=style),
             technique=Technique.objects.get(id=technique),
