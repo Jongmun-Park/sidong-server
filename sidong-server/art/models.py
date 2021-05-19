@@ -119,7 +119,8 @@ class Art(models.Model):
         choices=CHOICES_OF_SALE_STATUS, default=NOT_FOR_SALE,
     )
     is_framed = models.BooleanField(default=False)
-    price = models.PositiveIntegerField(null=True, default=None)
+    price = models.PositiveIntegerField(default=0)
+    delivery_fee = models.PositiveIntegerField(default=0)
     orientation = models.PositiveIntegerField(
         choices=CHOICES_OF_ORIENTATION, default=LANDSCAPE,
     )
