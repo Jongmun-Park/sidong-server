@@ -124,7 +124,7 @@ class Order(models.Model):
         (PREPARE_DELIVERY, '배송 준비중'),
         (ON_DELIVERY, '배송 중'),
         (DELIVERY_COMPLETED, '배송 완료'),
-        (REFUND, '환불'),
+        (REFUND, '환불 요청'),
         (REFUND_COMPLETED, '환불 완료'),
         (COMPLETED, '구매 확정'),
     )

@@ -416,6 +416,27 @@ class CompleteOrder(Mutation):
         return CompleteOrder(success=True)
 
 
+class RequestRefund(Mutation):
+    class Arguments:
+        order_id = ID(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    def mutate(self, info, order_id):
+        order = Order.objects.get(id=order_id)
+
+        if info.context.user.id != order.userinfo.user.id:
+            return RequestRefund(success=False, msg="환불 요청할 권한이 없습니다.")
+
+        order.status = Order.REFUND
+        order.save()
+        # TODO: SMS 전송
+        # 구매 완료 안내 메세지
+        # TO: 작가
+        return RequestRefund(success=True)
+
+
 class UpdateOrder(Mutation):
     class Arguments:
         order_id = ID(required=True)
@@ -483,3 +504,4 @@ class Mutation(ObjectType):
     update_order = UpdateOrder.Field()
     complete_order = CompleteOrder.Field()
     check_user_email = CheckUserEmail.Field()
+    request_refund = RequestRefund.Field()
