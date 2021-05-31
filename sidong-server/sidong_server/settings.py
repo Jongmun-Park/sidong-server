@@ -38,7 +38,7 @@ TOAST_APP_KEY = os.environ.get("TOAST_APP_KEY")
 
 ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 
-ADMINS = [('작업터', 'jakupteo@gmail.com'), ('박종문', 'momenttraveler@gmail.com')]
+ADMINS = [('작업터', 'jakupteo@gmail.com')]
 SERVER_EMAIL = 'jakupteo@gmail.com'
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
