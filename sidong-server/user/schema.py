@@ -6,7 +6,7 @@ from graphene import Mutation, ObjectType, String, Boolean, \
 from graphene_django.types import DjangoObjectType
 from user.models import Artist, UserInfo, Order, Like as ArtistLike
 from user.func import cancel_payment, create_order, create_payment, \
-    update_or_create_userinfo, validate_payment
+    update_or_create_userinfo, validate_payment, send_sms
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 from django.utils import timezone
@@ -15,6 +15,9 @@ from django.utils import timezone
 class UserInfoType(DjangoObjectType):
     class Meta:
         model = UserInfo
+
+    def resolve_phone(self, info):
+        return '0' + str(self.phone.national_number)
 
 
 class UserType(DjangoObjectType):
@@ -48,6 +51,9 @@ class ArtistType(DjangoObjectType):
             return False
         return ArtistLike.objects.filter(user=user, artist_id=self.id).exists()
 
+    def resolve_phone(self, info):
+        return '0' + str(self.phone.national_number)
+
 
 class OrderType(DjangoObjectType):
     class Meta:
@@ -65,6 +71,9 @@ class OrderType(DjangoObjectType):
 
     def resolve_delivery_number(self, info):
         return self.delivery_data['delivery_number'] if self.delivery_data else None
+
+    def resolve_recipient_phone(self, info):
+        return '0' + str(self.recipient_phone.national_number)
 
 
 class ArtistLikeType(ObjectType):
@@ -431,9 +440,22 @@ class RequestRefund(Mutation):
 
         order.status = Order.REFUND
         order.save()
-        # TODO: SMS 전송
-        # 구매 완료 안내 메세지
-        # TO: 작가
+
+        art_name = order.art_name[:8] + \
+            '..' if len(order.art_name) > 8 else order.art_name
+        # 고객 안내
+        send_sms([{"recipientNo": order.userinfo.phone.national_number}], """
+            [작업터]\n- 작품명: {art_name}\n환불 요청 접수 완료.\n감사합니다.
+        """.format(art_name=art_name))
+        # 작가 안내
+        send_sms([{"recipientNo": order.artist.phone.national_number}], """
+            [작업터]\n- 작품명: {art_name}\n환불 요청이 접수됐습니다\n확인 바랍니다
+        """.format(art_name=art_name))
+        # 관리자 안내
+        send_sms([{"recipientNo": "01027251365"}], """
+            [환불 접수]\n{order_id}, {art_name}\n환불 요청 확인하세요~
+        """.format(order_id=order_id, art_name=art_name))
+
         return RequestRefund(success=True)
 
 

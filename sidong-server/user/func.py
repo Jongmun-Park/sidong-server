@@ -120,3 +120,15 @@ def cancel_payment(payment_id):
         return (True, '')
     except Exception as error:
         return (False, '결제 취소 중 문제가 발생했습니다.\n' + error)
+
+
+def send_sms(recipient_list, content):
+    response = requests.post(
+        'https://api-sms.cloud.toast.com/sms/v2.4/appKeys/' +
+        settings.TOAST_APP_KEY+'/sender/sms',
+        json={
+            "body": content,
+            "sendNo": "01027251365",
+            "recipientList": recipient_list,
+        }
+    )

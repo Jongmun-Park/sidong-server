@@ -34,6 +34,8 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("SIDONG_AWS_SECRET_ACCESS_KEY")
 IMP_ACCESS_KEY = os.environ.get("IMP_ACCESS_KEY")
 IMP_SECRET_ACCESS_KEY = os.environ.get("IMP_SECRET_ACCESS_KEY")
 
+TOAST_APP_KEY = os.environ.get("TOAST_APP_KEY")
+
 ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 
 ADMINS = [('작업터', 'jakupteo@gmail.com'), ('박종문', 'momenttraveler@gmail.com')]
