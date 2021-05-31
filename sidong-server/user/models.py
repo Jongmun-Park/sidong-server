@@ -155,3 +155,25 @@ class Payment(models.Model):
     status = models.CharField(max_length=32)
     amount = models.IntegerField()
     pay_method = models.CharField(max_length=32)
+
+
+class Refund(models.Model):
+    CHANGED_MIND = 0
+    DIFFERENT_DETAIL = 1
+    DAMAGED_ART = 2
+    FAKE_ART = 3
+    ETC = 4
+
+    CHOICES_OF_REASON = [
+        (CHANGED_MIND, '단순 변심'),
+        (DIFFERENT_DETAIL, '실제 작품의 내용이 작품 상세 정보에 표기된 내용과 상이한 경우'),
+        (DAMAGED_ART, '배송 중 파손되었을 경우'),
+        (FAKE_ART, '위작 또는 명시되지 않은 모작의 경우'),
+        (ETC, '기타'),
+    ]
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    order = models.ForeignKey(
+        Order, null=True, on_delete=models.SET_NULL, related_name='refunds')
+    reason = models.PositiveIntegerField(
+        choices=CHOICES_OF_REASON, default=CHANGED_MIND)
