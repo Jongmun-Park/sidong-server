@@ -520,18 +520,19 @@ class UpdateOrder(Mutation):
 
         art_name = order.art_name[:8] + \
             '..' if len(order.art_name) > 8 else order.art_name
+        message = ''
 
         if status == Order.PREPARE_DELIVERY:
-            msg = '작가가 배송 준비 중입니다.^-^'
+            message = '작가가 배송 준비 중입니다.^-^'
         if status == Order.ON_DELIVERY:
-            msg = '배송 시작. 배송정보는 주문내역에서 확인 가능.'
+            message = '배송 시작. 배송정보는 주문내역에서 확인 가능.'
         if status == Order.DELIVERY_COMPLETED:
-            msg = '배송 완료. 7일 이내에 구매결정 부탁드립니다.'
+            message = '배송 완료. 7일 이내에 구매결정 부탁드립니다.'
 
         # 고객 안내
         send_sms([{"recipientNo": order.userinfo.phone.national_number}], """
-            [작업터]\n{art_name}\n{msg}
-        """.format(art_name=art_name), msg=msg)
+            [작업터]\n{art_name}\n{message}
+        """.format(art_name=art_name), message=message)
 
         return UpdateOrder(success=True)
 
