@@ -6,15 +6,19 @@ from user.models import Payment, UserInfo, Order
 
 
 def send_sms(recipient_list, content):
-    response = requests.post(
-        'https://api-sms.cloud.toast.com/sms/v2.4/appKeys/' +
-        settings.TOAST_APP_KEY+'/sender/sms',
-        json={
-            "body": content,
-            "sendNo": "01027251365",
-            "recipientList": recipient_list,
-        }
-    )
+    try:
+        response = requests.post(
+            'https://api-sms.cloud.toast.com/sms/v2.4/appKeys/' +
+            settings.TOAST_APP_KEY+'/sender/sms',
+            json={
+                "body": content,
+                "sendNo": "01027251365",
+                "recipientList": recipient_list,
+            }
+        )
+    except:
+        # TODO: 문자 전송 실패 에러 처리
+        pass
 
 
 def get_access_token_of_imp():
