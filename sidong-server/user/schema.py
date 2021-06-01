@@ -532,7 +532,7 @@ class UpdateOrder(Mutation):
         # 고객 안내
         send_sms([{"recipientNo": order.userinfo.phone.national_number}], """
             [작업터]\n{art_name}\n{message}
-        """.format(art_name=art_name), message=message)
+        """.format(art_name=art_name, message=message))
 
         return UpdateOrder(success=True)
 
