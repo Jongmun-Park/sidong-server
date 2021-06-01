@@ -5,6 +5,18 @@ from django.conf import settings
 from user.models import Payment, UserInfo, Order
 
 
+def send_sms(recipient_list, content):
+    response = requests.post(
+        'https://api-sms.cloud.toast.com/sms/v2.4/appKeys/' +
+        settings.TOAST_APP_KEY+'/sender/sms',
+        json={
+            "body": content,
+            "sendNo": "01027251365",
+            "recipientList": recipient_list,
+        }
+    )
+
+
 def get_access_token_of_imp():
     try:
         response = requests.post('https://api.iamport.kr/users/getToken', json={
@@ -63,6 +75,11 @@ def validate_payment(imp_uid, art_price):
 
     if payment_info.get('amount') != art_price:
         # TODO: 결제 취소
+        # 관리자 안내
+        send_sms([{"recipientNo": "01027251365"}], """
+            [결제 금액 불일치]\nimp_uid: {imp_uid}
+        """.format(imp_uid=imp_uid))
+
         return (False, '결제 금액에 문제가 있습니다.\n결제된 금액: ' + payment_info.get('amount'))
 
     return (True, payment_info)
@@ -120,15 +137,3 @@ def cancel_payment(payment_id):
         return (True, '')
     except Exception as error:
         return (False, '결제 취소 중 문제가 발생했습니다.\n' + error)
-
-
-def send_sms(recipient_list, content):
-    response = requests.post(
-        'https://api-sms.cloud.toast.com/sms/v2.4/appKeys/' +
-        settings.TOAST_APP_KEY+'/sender/sms',
-        json={
-            "body": content,
-            "sendNo": "01027251365",
-            "recipientList": recipient_list,
-        }
-    )

@@ -367,9 +367,19 @@ class CreateOrder(Mutation):
 
         art.sale_status = Art.SOLD_OUT
         art.save()
-        # TODO: SMS 전송
-        # 주문/결제 정보 메세지
-        # TO: 주문자, 작가
+
+        art_name = art.name[:8] + \
+            '..' if len(art.name) > 8 else art.name
+
+        # 고객 안내
+        send_sms([{"recipientNo": phone}], """
+                [작업터]\n- 작품명: {art_name}\n주문 완료.\n감사합니다.
+            """.format(art_name=art_name))
+        # 작가 안내
+        send_sms([{"recipientNo": art.artist.phone.national_number}], """
+                [작업터]\n- 작품명: {art_name}\n주문이 접수됐습니다.\n확인 바랍니다.
+            """.format(art_name=art_name))
+
         return CreateOrder(success=True)
 
 
@@ -398,9 +408,15 @@ class CancelOrder(Mutation):
 
         order.art.sale_status = Art.ON_SALE
         order.art.save()
-        # TODO: SMS 전송
-        # 주문 취소 안내 메세지
-        # TO: 작가
+
+        art_name = order.art_name[:8] + \
+            '..' if len(order.art_name) > 8 else order.art_name
+
+        # 작가 안내
+        send_sms([{"recipientNo": order.artist.phone.national_number}], """
+            [작업터]\n- 작품명: {art_name}\n주문이 취소됐습니다.\n확인 바랍니다.
+        """.format(art_name=art_name))
+
         return CancelOrder(success=True)
 
 
@@ -419,9 +435,15 @@ class CompleteOrder(Mutation):
 
         order.status = Order.COMPLETED
         order.save()
-        # TODO: SMS 전송
-        # 구매 완료 안내 메세지
-        # TO: 작가
+
+        art_name = order.art_name[:8] + \
+            '..' if len(order.art_name) > 8 else order.art_name
+
+        # 작가 안내
+        send_sms([{"recipientNo": order.artist.phone.national_number}], """
+            [작업터]\n- 작품명: {art_name}\n구매가 확정됐습니다.^-^
+        """.format(art_name=art_name))
+
         return CompleteOrder(success=True)
 
 
@@ -493,11 +515,23 @@ class UpdateOrder(Mutation):
             else:
                 return UpdateOrder(success=False, msg="택배 회사명과 송장 번호를 입력해주세요.(필수)")
 
-        # TODO: SMS 전송
-        # 상태 변경 안내
-        # TO: 주문자
         order.status = status
         order.save()
+
+        art_name = order.art_name[:8] + \
+            '..' if len(order.art_name) > 8 else order.art_name
+
+        if status == Order.PREPARE_DELIVERY:
+            msg = '작가가 배송 준비 중입니다.^-^'
+        if status == Order.ON_DELIVERY:
+            msg = '배송 시작. 배송정보는 주문내역에서 확인 가능.'
+        if status == Order.DELIVERY_COMPLETED:
+            msg = '배송 완료. 7일 이내에 구매결정 부탁드립니다.'
+
+        # 고객 안내
+        send_sms([{"recipientNo": order.userinfo.phone.national_number}], """
+            [작업터]\n{art_name}\n{msg}
+        """.format(art_name=art_name), msg=msg)
 
         return UpdateOrder(success=True)
 

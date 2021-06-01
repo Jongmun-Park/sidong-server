@@ -5,7 +5,7 @@ from django.db import transaction
 from art.models import Art
 from user.models import Order
 from user.func import create_order, create_payment, \
-    update_or_create_userinfo, validate_payment
+    update_or_create_userinfo, validate_payment, send_sms
 
 
 @transaction.atomic
@@ -58,7 +58,17 @@ def create_order_on_mobile(request):
 
     art.sale_status = Art.SOLD_OUT
     art.save()
-    # TODO: SMS 전송
-    # 주문/결제 정보 메세지
-    # TO: 주문자, 작가
+
+    art_name = art.name[:8] + \
+        '..' if len(art.name) > 8 else art.name
+
+    # 고객 안내
+    send_sms([{"recipientNo": phone}], """
+            [작업터]\n- 작품명: {art_name}\n주문 완료.\n감사합니다.
+        """.format(art_name=art_name))
+    # 작가 안내
+    send_sms([{"recipientNo": art.artist.phone.national_number}], """
+            [작업터]\n- 작품명: {art_name}\n주문이 접수됐습니다.\n확인 바랍니다.
+        """.format(art_name=art_name))
+
     return redirect("https://www.jakupteo.com/account/orders")
