@@ -7,7 +7,7 @@ from user.models import Payment, UserInfo, Order
 
 def send_sms(recipient_list, content):
     try:
-        response = requests.post(
+        requests.post(
             'https://api-sms.cloud.toast.com/sms/v2.4/appKeys/' +
             settings.TOAST_APP_KEY+'/sender/sms',
             json={
