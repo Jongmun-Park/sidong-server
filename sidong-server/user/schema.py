@@ -456,9 +456,15 @@ class CompleteOrder(Mutation):
             '..' if len(order.art_name) > 8 else order.art_name
 
         # 작가 안내
-        send_sms([{"recipientNo": order.artist.phone.national_number}], """
-            [작업터]\n- 작품명: {art_name}\n구매가 확정됐습니다.^-^
-        """.format(art_name=art_name))
+        send_lms([{"recipientNo": order.artist.phone.national_number}],
+                 "[작업터] 구매 확정 안내\n\n" +
+                 "- 작품명: " + art_name + "\n" +
+                 "구매자가 구매를 확정했습니다. 판매 축하드립니다. :)\n\n" +
+                 "[필독 사항]\n" +
+                 "* 대금 정산은 매월 마지막 주에 진행됩니다.\n" +
+                 "* 정산이 끝나면 다시 안내 문자 드리겠습니다.\n\n" +
+                 "작업터를 이용해주셔서 항상 감사드립니다. 작가님들을 위한 서비스가 되겠습니다.(꾸벅)"
+                 )
 
         return CompleteOrder(success=True)
 
