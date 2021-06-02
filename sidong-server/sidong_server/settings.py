@@ -35,6 +35,7 @@ IMP_ACCESS_KEY = os.environ.get("IMP_ACCESS_KEY")
 IMP_SECRET_ACCESS_KEY = os.environ.get("IMP_SECRET_ACCESS_KEY")
 
 TOAST_APP_KEY = os.environ.get("TOAST_APP_KEY")
+NAVER_CLOUD_SERVICE_ID = os.environ.get("NAVER_CLOUD_SERVICE_ID")
 
 ALLOWED_HOSTS = ["api.jakupteo.com", "localhost"]
 
