@@ -6,7 +6,7 @@ from graphene import Mutation, ObjectType, String, Boolean, \
 from graphene_django.types import DjangoObjectType
 from user.models import Artist, UserInfo, Order, Like as ArtistLike
 from user.func import cancel_payment, create_order, create_payment, \
-    update_or_create_userinfo, validate_payment, send_sms
+    update_or_create_userinfo, validate_payment, send_sms, send_lms
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 from django.utils import timezone
@@ -370,15 +370,31 @@ class CreateOrder(Mutation):
 
         art_name = art.name[:8] + \
             '..' if len(art.name) > 8 else art.name
+        order_id = str(msg_or_order.id)
 
         # 고객 안내
-        send_sms([{"recipientNo": phone}], """
-                [작업터]\n- 작품명: {art_name}\n주문 완료.\n감사합니다.
-            """.format(art_name=art_name))
+        send_lms([{"recipientNo": phone}],
+                 "[작업터] 주문 완료\n" +
+                 "- 주문번호: " + order_id + "\n" +
+                 "- 작품명: " + art_name + "\n" +
+                 "주문에 진심으로 감사드립니다.\n" +
+                 "작가분이 배송 준비할 예정입니다.\n" +
+                 "안전히 배송될 수 있게 진행 상황을 문자로 안내드리겠습니다.\n" +
+                 "작업터를 이용해주셔서 감사드립니다. :)"
+                 )
         # 작가 안내
-        send_sms([{"recipientNo": art.artist.phone.national_number}], """
-                [작업터]\n- 작품명: {art_name}\n주문이 접수됐습니다.\n확인 바랍니다.
-            """.format(art_name=art_name))
+        send_lms([{"recipientNo": art.artist.phone.national_number}],
+                 "[작업터] 작품 판매 안내\n" +
+                 "- 주문번호: " + order_id + "\n" +
+                 "- 작품명: " + art_name + "\n" +
+                 "작품이 판매되었습니다. :)\n" +
+                 "배송 준비 부탁드립니다.\n\n" +
+                 "[필독 사항]\n" +
+                 "* 판매 관리에서 '배송 준비중' 으로 상태 변경 부탁드립니다.\n" +
+                 "* '작품보증서'를 작품과 함께 배송하셔야 합니다.\n" +
+                 "* '작품보증서'는 계정 메일로 보내드리겠습니다.\n\n" +
+                 "작품 판매를 축하드립니다. 안전히 작품이 구매자에게 전달될 수 있도록 꼼꼼한 포장 부탁드립니다 :)"
+                 )
 
         return CreateOrder(success=True)
 
@@ -471,7 +487,7 @@ class RequestRefund(Mutation):
         """.format(art_name=art_name))
         # 작가 안내
         send_sms([{"recipientNo": order.artist.phone.national_number}], """
-            [작업터]\n- 작품명: {art_name}\n환불 요청이 접수됐습니다\n확인 바랍니다
+            [작업터]\n- 작품명: {art_name}\n환불이 진행될 예정입니다.
         """.format(art_name=art_name))
         # 관리자 안내
         send_sms([{"recipientNo": "01027251365"}], """
@@ -523,16 +539,39 @@ class UpdateOrder(Mutation):
         message = ''
 
         if status == Order.PREPARE_DELIVERY:
-            message = '작가가 배송 준비 중입니다.^-^'
+            message = \
+                "[작업터] 배송 준비 중\n" + \
+                "- 주문번호: " + order_id + "\n" + \
+                "- 작품명: " + art_name + "\n" + \
+                "작가가 주문을 확인하여\n" + \
+                "정성스레 배송 준비 중에 있습니다.\n" + \
+                "작품 배송은 일반 상품 배송보다 기간이 더 소요되는 편입니다.\n" + \
+                "양해 부탁드립니다. 감사합니다 :)"
+
         if status == Order.ON_DELIVERY:
-            message = '배송 시작. 배송정보는 주문내역에서 확인 가능.'
+            message = \
+                "[작업터] 배송 시작 안내\n" + \
+                "- 주문번호: " + order_id + "\n" + \
+                "- 작품명: " + art_name + "\n" + \
+                "작품 배송이 시작됐습니다.\n\n" + \
+                "- 배송회사: " + delivery_company + "\n" + \
+                "- 송장번호: " + delivery_number + "\n\n" + \
+                "조금만 더 기다리시면 구매하신 작품을 만나보실 수 있습니다.\n" + \
+                "작업터를 이용해주셔서 감사합니다 :)"
+
         if status == Order.DELIVERY_COMPLETED:
-            message = '배송 완료. 7일 이내에 구매결정 부탁드립니다.'
+            message = \
+                "[작업터] 배송 완료\n" + \
+                "- 주문번호: " + order_id + "\n" + \
+                "- 작품명: " + art_name + "\n" + \
+                "작품 배송이 완료됐습니다.\n" + \
+                "작품은 마음에 드셨는지요? ^-^\n" + \
+                "작품을 확인하셨다면 7일 이내에 '구매확정' 또는 '환불요청' 부탁드립니다.\n" + \
+                "7일 이후엔 자동으로 '구매확정' 됨을 안내드립니다.\n" + \
+                "작업터를 이용해주셔서 감사합니다 :)"
 
         # 고객 안내
-        send_sms([{"recipientNo": order.userinfo.phone.national_number}], """
-            [작업터]\n{art_name}\n{message}
-        """.format(art_name=art_name, message=message))
+        send_lms([{"recipientNo": order.userinfo.phone.national_number}], message)
 
         return UpdateOrder(success=True)
 

@@ -5,7 +5,7 @@ from django.db import transaction
 from art.models import Art
 from user.models import Order
 from user.func import create_order, create_payment, \
-    update_or_create_userinfo, validate_payment, send_sms
+    update_or_create_userinfo, validate_payment, send_lms
 
 
 @transaction.atomic
@@ -61,14 +61,30 @@ def create_order_on_mobile(request):
 
     art_name = art.name[:8] + \
         '..' if len(art.name) > 8 else art.name
+    order_id = str(msg_or_order.id)
 
     # 고객 안내
-    send_sms([{"recipientNo": phone}], """
-            [작업터]\n- 작품명: {art_name}\n주문 완료.\n감사합니다.
-        """.format(art_name=art_name))
+    send_lms([{"recipientNo": phone}],
+             "[작업터] 주문 완료\n" +
+             "- 주문번호: " + order_id + "\n" +
+             "- 작품명: " + art_name + "\n" +
+             "주문에 진심으로 감사드립니다.\n" +
+             "작가분이 배송 준비할 예정입니다.\n" +
+             "안전히 배송될 수 있게 진행 상황을 문자로 안내드리겠습니다.\n" +
+             "작업터를 이용해주셔서 감사드립니다. :)"
+             )
     # 작가 안내
-    send_sms([{"recipientNo": art.artist.phone.national_number}], """
-            [작업터]\n- 작품명: {art_name}\n주문이 접수됐습니다.\n확인 바랍니다.
-        """.format(art_name=art_name))
+    send_lms([{"recipientNo": art.artist.phone.national_number}],
+             "[작업터] 작품 판매 안내\n" +
+             "- 주문번호: " + order_id + "\n" +
+             "- 작품명: " + art_name + "\n" +
+             "작품이 판매되었습니다. :)\n" +
+             "배송 준비 부탁드립니다.\n\n" +
+             "[필독 사항]\n" +
+             "* 판매 관리에서 '배송 준비중' 으로 상태 변경 부탁드립니다.\n" +
+             "* '작품보증서'를 작품과 함께 배송하셔야 합니다.\n" +
+             "* '작품보증서'는 계정 메일로 보내드리겠습니다.\n\n" +
+             "작품 판매를 축하드립니다. 안전히 작품이 구매자에게 전달될 수 있도록 꼼꼼한 포장 부탁드립니다 :)"
+             )
 
     return redirect("https://www.jakupteo.com/account/orders")

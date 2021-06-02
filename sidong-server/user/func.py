@@ -21,6 +21,23 @@ def send_sms(recipient_list, content):
         pass
 
 
+def send_lms(recipient_list, content):
+    try:
+        requests.post(
+            'https://api-sms.cloud.toast.com/sms/v2.4/appKeys/' +
+            settings.TOAST_APP_KEY+'/sender/mms',
+            json={
+                "title": "작업터 안내 문자",
+                "body": content,
+                "sendNo": "01027251365",
+                "recipientList": recipient_list,
+            }
+        )
+    except:
+        # TODO: 문자 전송 실패 에러 처리
+        pass
+
+
 def get_access_token_of_imp():
     try:
         response = requests.post('https://api.iamport.kr/users/getToken', json={
