@@ -127,9 +127,10 @@ class Query(ObjectType):
         if medium_id is None:
             return None
 
-        themes = Theme.objects.filter(medium=medium_id)
-        styles = Style.objects.filter(medium=medium_id)
-        techniques = Technique.objects.filter(medium=medium_id)
+        themes = Theme.objects.filter(medium=medium_id).order_by('name')
+        styles = Style.objects.filter(medium=medium_id).order_by('name')
+        techniques = Technique.objects.filter(
+            medium=medium_id).order_by('name')
 
         return ArtOptions(
             themes=themes,
