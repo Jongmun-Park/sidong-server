@@ -123,7 +123,7 @@ class Query(ObjectType):
     def resolve_art(self, info, art_id):
         return Art.objects.get(id=art_id)
 
-    def resolve_art_options(parent, info, medium_id=None):
+    def resolve_art_options(self, info, medium_id=None):
         if medium_id is None:
             return None
 
