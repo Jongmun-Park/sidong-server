@@ -271,6 +271,7 @@ class CreateArtist(Mutation):
             thumbnail=thumbnail_file['instance'],
             representative_work=representative_work_file['instance'],
             website=website if website else None,
+            is_approved=True,
         )
 
         return CreateArtist(success=True)
