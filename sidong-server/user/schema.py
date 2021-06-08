@@ -344,7 +344,7 @@ class CreateOrder(Mutation):
             return CreateOrder(success=False, msg="판매 중인 작품이 아닙니다.")
 
         result_of_payment, msg_or_payment_info = validate_payment(
-            imp_uid, art.price)
+            imp_uid, art.price+art.delivery_fee)
 
         if result_of_payment is False:
             return CreateOrder(success=False, msg=msg_or_payment_info)

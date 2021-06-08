@@ -66,7 +66,7 @@ def create_order(art, userinfo, recipient_address, recipient_name, recipient_pho
         order = Order.objects.create(
             userinfo=userinfo,
             art_name=art.name,
-            price=art.price,
+            price=art.price+art.delivery_fee,
             art=art,
             artist=art.artist,
             recipient_address=recipient_address,
@@ -79,7 +79,7 @@ def create_order(art, userinfo, recipient_address, recipient_name, recipient_pho
         return (False, '주문(Order) 생성 중에 문제가 발생했습니다.\n' + error)
 
 
-def validate_payment(imp_uid, art_price):
+def validate_payment(imp_uid, price):
     try:
         response = requests.get('https://api.iamport.kr/payments/'+imp_uid, headers={
             'Authorization': get_access_token_of_imp(),
@@ -94,14 +94,14 @@ def validate_payment(imp_uid, art_price):
     if payment_info.get('status') != 'paid':
         return (False, '결제가 완료되지 않았습니다.\n상태: ' + payment_info.get('status'))
 
-    if payment_info.get('amount') != art_price:
+    if payment_info.get('amount') != price:
         # TODO: 결제 취소
         # 관리자 안내
         send_sms([{"recipientNo": "01027251365"}], """
             [결제 금액 불일치]\nimp_uid: {imp_uid}
         """.format(imp_uid=imp_uid))
 
-        return (False, '결제 금액에 문제가 있습니다.\n결제된 금액: ' + payment_info.get('amount'))
+        return (False, '결제 금액에 문제가 있습니다.\n결제된 금액: ' + str(payment_info.get('amount')))
 
     return (True, payment_info)
 

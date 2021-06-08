@@ -34,7 +34,7 @@ def create_order_on_mobile(request):
         return HttpResponse('<script>alert("판매 중인 작품이 아닙니다.")</script>')
 
     result_of_payment, msg_or_payment_info = validate_payment(
-        imp_uid, art.price)
+        imp_uid, art.price+art.delivery_fee)
 
     if result_of_payment is False:
         return HttpResponse('<script>alert("{0}")</script>'.format(msg_or_payment_info))
