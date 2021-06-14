@@ -87,6 +87,12 @@ class OrderConnection(ObjectType):
     total_count = Int()
 
 
+class ArtistAccountInfo(ObjectType):
+    bank_name = String()
+    master = String()
+    number = String()
+
+
 class Query(ObjectType):
     user = Field(UserType, id=ID(), email=String())
     current_user = Field(UserType)
@@ -99,6 +105,7 @@ class Query(ObjectType):
                                 last_like_id=ID())
     orders = Field(OrderConnection, page=Int(), page_size=Int())
     sales = Field(OrderConnection, page=Int(), page_size=Int())
+    artist_account_info = Field(ArtistAccountInfo)
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -200,6 +207,21 @@ class Query(ObjectType):
         return {
             'orders': sales.order_by('-id')[page*page_size:(page + 1)*page_size],
             'total_count': sales.count(),
+        }
+
+    def resolve_artist_account_info(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+
+        artist = Artist.objects.get(user=user)
+        if artist.account is None:
+            return None
+
+        return {
+            'bank_name': artist.account['bank_name'],
+            'master': artist.account['master'],
+            'number': artist.account['number'],
         }
 
 
@@ -504,6 +526,27 @@ class RequestRefund(Mutation):
         return RequestRefund(success=True)
 
 
+class RegisterAccountInfo(Mutation):
+    class Arguments:
+        bank_name = String(required=True)
+        master = String(required=True)
+        number = String(required=True)
+
+    success = Boolean()
+    msg = String()
+
+    def mutate(self, info, bank_name, master, number):
+        artist = Artist.objects.get(user=info.context.user)
+        artist.account = {
+            'bank_name': bank_name,
+            'master': master,
+            'number': number,
+        }
+        artist.save()
+
+        return RegisterAccountInfo(success=True)
+
+
 class UpdateOrder(Mutation):
     class Arguments:
         order_id = ID(required=True)
@@ -608,3 +651,4 @@ class Mutation(ObjectType):
     complete_order = CompleteOrder.Field()
     check_user_email = CheckUserEmail.Field()
     request_refund = RequestRefund.Field()
+    register_account_info = RegisterAccountInfo.Field()

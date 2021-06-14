@@ -75,6 +75,7 @@ class Artist(models.Model):
         choices=CHOICES_OF_RESIDENCE, default=SEOUL)
     website = models.CharField(null=True, max_length=64)
     like_count = models.PositiveIntegerField(default=0)
+    account = JSONField(null=True)
 
 
 class Like(models.Model):
