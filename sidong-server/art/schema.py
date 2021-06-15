@@ -5,7 +5,7 @@ from graphene_django.types import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from django.contrib.auth.models import User
 from art.models import Theme, Style, Technique, Art, \
-    calculate_art_size, Like
+    calculate_art_size, Like, calculate_orientation
 from file.models import File, create_file, validate_file
 from user.models import Artist
 from django.utils import timezone
@@ -254,7 +254,6 @@ class CreateArt(Mutation):
         is_framed = Boolean(required=True)
         medium = ID(required=True)
         name = String(required=True)
-        orientation = ID(required=True)
         price = Int()
         delivery_fee = Int()
         sale_status = ID(required=True)
@@ -267,7 +266,7 @@ class CreateArt(Mutation):
 
     @transaction.atomic
     def mutate(self, info, art_images, description, width,
-               height, is_framed, medium, name, orientation,
+               height, is_framed, medium, name,
                sale_status, style, technique, theme, price=None, delivery_fee=None):
         current_user = info.context.user
 
@@ -294,7 +293,7 @@ class CreateArt(Mutation):
             is_framed=is_framed,
             medium=medium,
             name=name,
-            orientation=orientation,
+            orientation=calculate_orientation(width, height),
             price=price if price else 0,
             delivery_fee=delivery_fee if delivery_fee else 0,
             sale_status=sale_status,
@@ -316,7 +315,6 @@ class UpdateArt(Mutation):
         is_framed = Boolean(required=True)
         medium = ID(required=True)
         name = String(required=True)
-        orientation = ID(required=True)
         price = Int()
         delivery_fee = Int()
         sale_status = ID(required=True)
@@ -328,7 +326,7 @@ class UpdateArt(Mutation):
     msg = String()
 
     def mutate(self, info, art_id, art_images, description, width,
-               height, is_framed, medium, name, orientation,
+               height, is_framed, medium, name,
                sale_status, style, technique, theme, price=None, delivery_fee=None):
 
         art = Art.objects.filter(id=art_id)
@@ -345,7 +343,7 @@ class UpdateArt(Mutation):
             is_framed=is_framed,
             medium=medium,
             name=name,
-            orientation=orientation,
+            orientation=calculate_orientation(width, height),
             price=price if price else 0,
             delivery_fee=delivery_fee if delivery_fee else 0,
             sale_status=sale_status,

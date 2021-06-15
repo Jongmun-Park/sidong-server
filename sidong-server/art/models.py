@@ -158,3 +158,14 @@ def calculate_art_size(width, height):
         return Art.MEDIUM
     else:
         return Art.SMALL
+
+
+def calculate_orientation(width, height):
+    if width == height:
+        return Art.SQUARE
+    elif width > height:
+        return Art.LANDSCAPE
+    elif width < height:
+        return Art.PORTRAIT
+    else:
+        return Art.ETC_ORIENTATION
