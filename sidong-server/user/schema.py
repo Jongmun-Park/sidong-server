@@ -299,6 +299,69 @@ class CreateArtist(Mutation):
         return CreateArtist(success=True)
 
 
+class UpdateArtist(Mutation):
+    class Arguments:
+        artist_name = String(required=True)
+        real_name = String(required=True)
+        phone = String(required=True)
+        description = String(required=True)
+        category = Int(required=True)
+        residence = Int(required=True)
+        thumbnail = Upload()
+        representative_work = Upload()
+        website = String()
+
+    success = Boolean()
+    msg = String()
+
+    @transaction.atomic
+    def mutate(self, info, artist_name, real_name, website,
+               phone, description, category, residence, thumbnail, representative_work):
+        current_user = info.context.user
+        try:
+            artist = Artist.objects.get(user=current_user)
+        except Artist.DoesNotExist:
+            return UpdateArtist(success=False, msg="작가 등록되지 않은 유저입니다.")
+
+        if thumbnail:
+            validate_thumbnail = validate_file(
+                thumbnail[0], File.BUCKET_ASSETS)
+            if validate_thumbnail['status'] == 'fail':
+                return UpdateArtist(success=False, msg=validate_thumbnail['msg'])
+
+            thumbnail_file = create_file(
+                thumbnail[0], File.BUCKET_ASSETS, current_user)
+            if thumbnail_file['status'] == 'fail':
+                return UpdateArtist(success=False, msg=thumbnail_file['msg'])
+
+            artist.thumbnail = thumbnail_file['instance']
+
+        if representative_work:
+            validate_representative_work = validate_file(
+                representative_work[0], File.BUCKET_ASSETS)
+            if validate_representative_work['status'] == 'fail':
+                return UpdateArtist(success=False, msg=validate_representative_work['msg'])
+
+            representative_work_file = create_file(
+                representative_work[0], File.BUCKET_ASSETS, current_user)
+            if representative_work_file['status'] == 'fail':
+                return UpdateArtist(success=False, msg=representative_work_file['msg'])
+
+            artist.representative_work = representative_work_file['instance']
+
+        artist.artist_name = artist_name
+        artist.real_name = real_name
+        artist.phone = phone
+        artist.description = description
+        artist.category = category
+        artist.residence = residence
+        artist.website = website if website else None
+
+        artist.save()
+
+        return UpdateArtist(success=True)
+
+
 class LikeArtist(Mutation):
     class Arguments:
         artist_id = ID(required=True)
@@ -643,6 +706,7 @@ class CheckUserEmail(Mutation):
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     create_artist = CreateArtist.Field()
+    update_artist = UpdateArtist.Field()
     like_artist = LikeArtist.Field()
     cancel_like_artist = CancelLikeArtist.Field()
     create_order = CreateOrder.Field()
