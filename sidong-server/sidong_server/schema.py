@@ -19,7 +19,6 @@ class SearchQuery(ObjectType):
         SearchResultCountConnection, word=String(required=True))
 
     def resolve_search_result_count(self, info, word):
-        print('word:', word)
         if not word:
             return {'result': False}
 
