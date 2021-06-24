@@ -79,6 +79,11 @@ class ArtLikeType(ObjectType):
     arts = List(ArtType)
 
 
+class CursorBasedArts(ObjectType):
+    last_id = ID()
+    arts = List(ArtType)
+
+
 class ArtConnection(ObjectType):
     arts = List(ArtType)
     total_count = Int()
@@ -119,6 +124,8 @@ class Query(ObjectType):
         ArtConnection, page=Int(), page_size=Int())
     user_liking_arts = Field(ArtLikeType, user_id=ID(required=True),
                              last_like_id=ID())
+    search_arts = Field(CursorBasedArts, last_id=ID(),
+                        word=String(required=True))
 
     def resolve_art(self, info, art_id):
         return Art.objects.get(id=art_id)
@@ -201,7 +208,7 @@ class Query(ObjectType):
         return arts.order_by(*ordering_priority)[page*page_size:(page + 1)*page_size]
 
     def resolve_arts_by_artist(self, info, artist_id, last_art_id=None):
-        arts = Art.objects.filter(artist_id=artist_id).order_by('-id')
+        arts = Art.objects.filter(artist_id=artist_id)
 
         if not arts:
             return None
@@ -210,7 +217,7 @@ class Query(ObjectType):
         if last_art_id:
             arts_filter = {'id__lt': last_art_id}
 
-        return arts.filter(**arts_filter)[:20]
+        return arts.filter(**arts_filter).order_by('-id')[:20]
 
     def resolve_current_user_arts_offset_based(self, info, page=0, page_size=10):
         user = info.context.user
@@ -226,7 +233,7 @@ class Query(ObjectType):
 
     def resolve_user_liking_arts(self, info, user_id, last_like_id=None):
         like_instances = Like.objects.filter(
-            user=User.objects.get(id=user_id)).order_by('-id')
+            user=User.objects.get(id=user_id))
 
         if not like_instances:
             return None
@@ -236,12 +243,31 @@ class Query(ObjectType):
             like_filter = {'id__lt': last_like_id}
 
         like_instances = like_instances.filter(
-            **like_filter)[:20]
+            **like_filter).order_by('-id')[:20]
 
         return {
             'id': user_id,
             'last_like_id': like_instances[len(like_instances) - 1].id if like_instances else None,
             'arts': [like.art for like in like_instances],
+        }
+
+    def resolve_search_arts(self, info, word, last_id=None):
+        if not word:
+            return None
+
+        arts = Art.objects.filter(name__icontains=word)
+        if not arts:
+            return None
+
+        arts_filter = {}
+        if last_id:
+            arts_filter = {'id__lt': last_id}
+
+        arts = arts.filter(**arts_filter).order_by('-id')[:20]
+
+        return {
+            'last_id': arts[len(arts) - 1].id if arts else None,
+            'arts': arts,
         }
 
 

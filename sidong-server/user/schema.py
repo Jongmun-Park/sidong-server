@@ -166,7 +166,7 @@ class Query(ObjectType):
 
     def resolve_user_liking_artists(self, info, user_id, last_like_id=None):
         like_instances = ArtistLike.objects.filter(
-            user=User.objects.get(id=user_id)).order_by('-id')
+            user=User.objects.get(id=user_id))
 
         if not like_instances:
             return None
@@ -176,7 +176,7 @@ class Query(ObjectType):
             like_filter = {'id__lt': last_like_id}
 
         like_instances = like_instances.filter(
-            **like_filter)[:20]
+            **like_filter).order_by('-id')[:20]
 
         return {
             'id': user_id,
