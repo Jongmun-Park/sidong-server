@@ -10,6 +10,7 @@ from user.func import cancel_payment, create_order, create_payment, \
 from art.models import Art, Like as ArtLike
 from file.models import File, create_file, validate_file
 from django.utils import timezone
+from django.db.models import Q
 
 
 class UserInfoType(DjangoObjectType):
@@ -82,6 +83,11 @@ class ArtistLikeType(ObjectType):
     artists = List(ArtistType)
 
 
+class CursorBasedArtists(ObjectType):
+    last_id = ID()
+    artists = List(ArtistType)
+
+
 class OrderConnection(ObjectType):
     orders = List(OrderType)
     total_count = Int()
@@ -106,6 +112,8 @@ class Query(ObjectType):
     orders = Field(OrderConnection, page=Int(), page_size=Int())
     sales = Field(OrderConnection, page=Int(), page_size=Int())
     artist_account_info = Field(ArtistAccountInfo)
+    search_artists = Field(
+        CursorBasedArtists, last_id=ID(), word=String(required=True))
 
     def resolve_user(self, info, id=None, email=None):
         if id is not None:
@@ -171,9 +179,7 @@ class Query(ObjectType):
         if not like_instances:
             return None
 
-        like_filter = {}
-        if last_like_id:
-            like_filter = {'id__lt': last_like_id}
+        like_filter = {'id__lt': last_like_id} if last_like_id else {}
 
         like_instances = like_instances.filter(
             **like_filter).order_by('-id')[:20]
@@ -222,6 +228,26 @@ class Query(ObjectType):
             'bank_name': artist.account['bank_name'],
             'master': artist.account['master'],
             'number': artist.account['number'],
+        }
+
+    def resolve_search_artists(self, info, word, last_id=None):
+        if not word:
+            return None
+
+        artists = Artist.objects.filter(
+            Q(real_name__icontains=word) |
+            Q(artist_name__icontains=word))
+
+        if not artists:
+            return None
+
+        artists_filter = {'id__lt': last_id} if last_id else {}
+
+        artists = artists.filter(**artists_filter).order_by('-id')[:20]
+
+        return {
+            'last_id': artists[len(artists) - 1].id if artists else None,
+            'artists': artists,
         }
 
 

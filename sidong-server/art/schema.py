@@ -238,9 +238,7 @@ class Query(ObjectType):
         if not like_instances:
             return None
 
-        like_filter = {}
-        if last_like_id:
-            like_filter = {'id__lt': last_like_id}
+        like_filter = {'id__lt': last_like_id} if last_like_id else {}
 
         like_instances = like_instances.filter(
             **like_filter).order_by('-id')[:20]
@@ -259,9 +257,7 @@ class Query(ObjectType):
         if not arts:
             return None
 
-        arts_filter = {}
-        if last_id:
-            arts_filter = {'id__lt': last_id}
+        arts_filter = {'id__lt': last_id} if last_id else {}
 
         arts = arts.filter(**arts_filter).order_by('-id')[:20]
 
