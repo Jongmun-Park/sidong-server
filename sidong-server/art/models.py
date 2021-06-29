@@ -152,7 +152,7 @@ class Like(models.Model):
 
 
 def calculate_art_size(width, height):
-    if width > 150 or height > 150:
+    if width > 100 or height > 100:
         return Art.LARGE
     elif width > 50 or height > 50:
         return Art.MEDIUM
