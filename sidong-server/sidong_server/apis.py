@@ -68,10 +68,10 @@ def create_order_on_mobile(request):
              "[작업터] 주문 완료\n" +
              "- 주문번호: " + order_id + "\n" +
              "- 작품명: " + art_name + "\n" +
-             "주문에 진심으로 감사드립니다.\n" +
+             "작품 주문 감사합니다.\n" +
              "작가분이 배송 준비할 예정입니다.\n" +
              "안전히 배송될 수 있게 진행 상황을 문자로 안내드리겠습니다.\n" +
-             "작업터를 이용해주셔서 감사드립니다. :)"
+             "작업터를 이용해주셔서 감사합니다. :)"
              )
     # 작가 안내
     send_lms([{"recipientNo": art.artist.phone.national_number}],
