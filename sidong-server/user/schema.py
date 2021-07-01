@@ -507,6 +507,10 @@ class CreateOrder(Mutation):
                  "* 작품보증서 양식은 '판매 관리' 메뉴에서 다운로드 가능합니다.\n\n" +
                  "작품 판매를 축하드립니다. 안전히 작품이 구매자에게 전달될 수 있도록 꼼꼼한 포장 부탁드립니다 :)"
                  )
+        # 관리자 안내
+        send_sms([{"recipientNo": "01027251365"}], """
+            [주문 접수]\n{order_id}: {art_name}
+        """.format(order_id=order_id, art_name=art_name))
 
         return CreateOrder(success=True)
 
@@ -542,7 +546,7 @@ class CancelOrder(Mutation):
 
         # 작가 안내
         send_sms([{"recipientNo": order.artist.phone.national_number}], """
-            [작업터]\n- 작품명: {art_name}\n주문이 취소됐습니다.\n확인 바랍니다.
+            [작업터]\n구매자가 '{art_name}' 작품 주문을 취소했습니다.
         """.format(art_name=art_name))
 
         return CancelOrder(success=True)
